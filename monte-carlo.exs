@@ -19,12 +19,12 @@ defmodule MonteCarlo do
   end
 end
 
-stories_remaining = 18
-working_days = 28
+stories_remaining = 13
+working_days = 25
 tickets_per_week = 3..5
 num_simulations = 10_000
 
-%{on_time: on_time, late: late} =
+results =
   1..num_simulations
   |> Enum.reduce(%{}, fn _day, acc ->
     days_to_complete = MonteCarlo.forecast(5, stories_remaining, tickets_per_week)
@@ -39,6 +39,9 @@ num_simulations = 10_000
       :late
     end
   end)
+
+on_time = Map.get(results, :on_time, [])
+late = Map.get(results, :late, [])
 
 IO.puts("We will deliver on-time #{MonteCarlo.percent(on_time, num_simulations)} % of the time")
 IO.puts("We will deliver late    #{MonteCarlo.percent(late, num_simulations)} % of the time")
