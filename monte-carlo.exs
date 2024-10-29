@@ -20,8 +20,8 @@ defmodule MonteCarlo do
 end
 
 stories_remaining = 13
-working_days = 25
-tickets_per_week = 3..5
+working_days = 24
+tickets_per_week = [7,8,6,2,4,5,7,9]
 num_simulations = 10_000
 
 results =
