@@ -3,7 +3,7 @@ defmodule MonteCarlo do
     stories_delivered = Enum.random(tickets_per_week)
 
     if stories_delivered >= stories_remaining do
-      days_thus_far
+      days_thus_far + 5
     else
       forecast(days_thus_far + 5, stories_remaining - stories_delivered, tickets_per_week)
     end
@@ -19,15 +19,15 @@ defmodule MonteCarlo do
   end
 end
 
-stories_remaining = 13
-working_days = 24
-tickets_per_week = [7,8,6,2,4,5,7,9]
+stories_remaining = 43
+working_days = 30
+tickets_per_week = [7,8,6,2,4,5,7,9, 12, 12]
 num_simulations = 10_000
 
 results =
   1..num_simulations
   |> Enum.reduce(%{}, fn _day, acc ->
-    days_to_complete = MonteCarlo.forecast(5, stories_remaining, tickets_per_week)
+    days_to_complete = MonteCarlo.forecast(0, stories_remaining, tickets_per_week)
 
     Map.update(acc, days_to_complete, 1, fn existing_count -> existing_count + 1 end)
   end)
