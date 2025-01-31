@@ -18,5 +18,3 @@ defmodule MonteCarloSimulation do
     |> Float.round(2)
   end
 end
-
-
