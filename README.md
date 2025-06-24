@@ -1,21 +1,9 @@
 # MontecarloSimulation
 
-**TODO: Add description**
+## Usage
 
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `montecarlo_simulation` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:montecarlo_simulation, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/montecarlo_simulation>.
-
+* as a cli
+    - you can run `./cli` from the root of the repo
+    - currently does not support arguments (although that would be a nice addition)
+* as a live book
+    - there is a live book present in the [notebooks](./notebooks) directory
