@@ -1,8 +1,8 @@
 #!/usr/bin/env elixir
 
-stories_remaining = 48
+stories_remaining = 37
 desired_release_date = ~D[2025-09-29]
-tickets_per_week = [5, 4, 4, 6, 9, 8, 7, 11, 5]
+tickets_per_week = [5, 4, 4, 6, 9, 8, 7, 11, 5, 8]
 num_simulations = 101600
 
 Code.require_file "./lib/montecarlo_simulation.ex"
