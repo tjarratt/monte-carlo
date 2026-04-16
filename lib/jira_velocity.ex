@@ -42,7 +42,8 @@ defmodule JiraVelocity do
     path = "/rest/agile/1.0/board/#{URI.encode(board_id)}/configuration"
 
     with {:ok, payload} <- get_json(config, path),
-         %{"filter" => %{"id" => filter_id}} <- payload do
+         %{"filter" => %{"id" => filter_id}} <- payload,
+         true <- is_integer(filter_id) do
       {:ok, filter_id}
     else
       {:error, reason} -> {:error, reason}
@@ -94,10 +95,10 @@ defmodule JiraVelocity do
   end
 
   defp week_ranges(today, week_count) do
-    latest_end = Date.add(today, 1)
+    tomorrow = Date.add(today, 1)
 
     for index <- (week_count - 1)..0 do
-      end_date = Date.add(latest_end, -index * 7)
+      end_date = Date.add(tomorrow, -index * 7)
       start_date = Date.add(end_date, -7)
       {start_date, end_date}
     end
