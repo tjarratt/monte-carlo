@@ -13,11 +13,6 @@ board_id =
     value -> String.trim(value)
   end
 
-if board_id == "" do
-  IO.puts("A Jira board id is required.")
-  System.halt(1)
-end
-
 tickets_per_week =
   case JiraVelocity.fetch_last_10_weeks(board_id) do
     {:ok, weekly_counts} ->
