@@ -1,7 +1,7 @@
 defmodule JiraVelocity do
   @weeks_to_fetch 10
 
-  def fetch_last_10_weeks(board_id) do
+  def fetch_velocity(board_id) do
     :inets.start()
     :ssl.start()
 
@@ -97,8 +97,8 @@ defmodule JiraVelocity do
   defp week_ranges(today, week_count) do
     current_week_start = Date.beginning_of_week(today, :monday)
 
-    for index <- (week_count - 1)..0 do
-      end_date = Date.add(current_week_start, -index * 7)
+    for week_offset <- (week_count - 1)..0 do
+      end_date = Date.add(current_week_start, -week_offset * 7)
       start_date = Date.add(end_date, -7)
       {start_date, end_date}
     end

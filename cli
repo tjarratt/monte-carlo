@@ -17,7 +17,7 @@ board_id =
   end
 
 tickets_per_week =
-  case JiraVelocity.fetch_last_10_weeks(board_id) do
+  case JiraVelocity.fetch_velocity(board_id) do
     {:ok, weekly_counts} ->
       IO.puts("Using Jira weekly velocity (last 10 weeks): #{inspect(weekly_counts)}")
       weekly_counts
