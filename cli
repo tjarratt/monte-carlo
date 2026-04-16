@@ -9,7 +9,10 @@ Code.require_file "./lib/jira_velocity.ex"
 
 board_id =
   case IO.gets("Jira board id: ") do
-    nil -> ""
+    nil ->
+      IO.puts("No input received for Jira board ID.")
+      System.halt(1)
+
     value -> String.trim(value)
   end
 
