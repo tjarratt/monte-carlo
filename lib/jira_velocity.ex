@@ -52,10 +52,13 @@ defmodule JiraVelocity do
   end
 
   defp count_completed_stories(config, filter_id, {start_date, end_date}) do
+    if not is_integer(filter_id) do
+      {:error, "jira board filter id is invalid"}
+    else
     jql =
       "filter = #{filter_id} AND issuetype = Story AND statusCategory = Done " <>
-        "AND resolved >= \"#{Date.to_iso8601(start_date)}\" " <>
-        "AND resolved < \"#{Date.to_iso8601(end_date)}\""
+        "AND resolved > \"#{Date.to_iso8601(start_date)}\" " <>
+        "AND resolved <= \"#{Date.to_iso8601(end_date)}\""
 
     path = "/rest/api/3/search?jql=#{URI.encode_www_form(jql)}&maxResults=0"
 
@@ -69,6 +72,7 @@ defmodule JiraVelocity do
       _ ->
         {:error,
          "could not read completed stories for #{Date.to_iso8601(start_date)}..#{Date.to_iso8601(end_date)}"}
+    end
     end
   end
 
@@ -95,10 +99,8 @@ defmodule JiraVelocity do
   end
 
   defp week_ranges(today, week_count) do
-    tomorrow = Date.add(today, 1)
-
     for index <- (week_count - 1)..0 do
-      end_date = Date.add(tomorrow, -index * 7)
+      end_date = Date.add(today, -index * 7)
       start_date = Date.add(end_date, -7)
       {start_date, end_date}
     end
