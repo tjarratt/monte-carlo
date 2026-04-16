@@ -2,12 +2,24 @@ defmodule JiraVelocity do
   @weeks_to_fetch 10
 
   def fetch_last_10_weeks(board_id) do
-    with {:ok, config} <- jira_config(),
-         {:ok, filter_id} <- board_filter_id(config, board_id) do
+    with {:ok, normalized_board_id} <- validate_board_id(board_id),
+         {:ok, config} <- jira_config(),
+         {:ok, filter_id} <- board_filter_id(config, normalized_board_id) do
       Date.utc_today()
       |> week_ranges(@weeks_to_fetch)
       |> Enum.map(&count_completed_stories(config, filter_id, &1))
       |> collect_counts()
+    end
+  end
+
+  defp validate_board_id(board_id) do
+    board_id
+    |> to_string()
+    |> String.trim()
+    |> case do
+      "" -> {:error, "jira board id must be a numeric value"}
+      trimmed when trimmed =~ ~r/^\d+$/ -> {:ok, trimmed}
+      _ -> {:error, "jira board id must be a numeric value"}
     end
   end
 
@@ -57,6 +69,9 @@ defmodule JiraVelocity do
   end
 
   defp get_json(config, path) do
+    :inets.start()
+    :ssl.start()
+
     headers = [
       {'Authorization',
        to_charlist("Basic #{Base.encode64("#{config.email}:#{config.api_token}")}")},

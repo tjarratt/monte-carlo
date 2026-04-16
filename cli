@@ -29,7 +29,11 @@ tickets_per_week =
       System.halt(1)
   end
 
-working_days = Date.range(Date.utc_today(), desired_release_date) |> Enum.map(& Date.day_of_week/1) |> Enum.filter(& &1 <= 5) |> length()
+working_days =
+  Date.range(Date.utc_today(), desired_release_date)
+  |> Enum.map(&Date.day_of_week/1)
+  |> Enum.filter(&(&1 <= 5))
+  |> length()
 
 results =
   1..num_simulations
