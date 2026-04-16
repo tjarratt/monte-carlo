@@ -2,6 +2,9 @@ defmodule JiraVelocity do
   @weeks_to_fetch 10
 
   def fetch_last_10_weeks(board_id) do
+    :inets.start()
+    :ssl.start()
+
     with {:ok, normalized_board_id} <- validate_board_id(board_id),
          {:ok, config} <- jira_config(),
          {:ok, filter_id} <- board_filter_id(config, normalized_board_id) do
@@ -17,7 +20,7 @@ defmodule JiraVelocity do
     |> to_string()
     |> String.trim()
     |> case do
-      "" -> {:error, "jira board id must be a numeric value"}
+      "" -> {:error, "jira board id cannot be empty"}
       trimmed when trimmed =~ ~r/^\d+$/ -> {:ok, trimmed}
       _ -> {:error, "jira board id must be a numeric value"}
     end
@@ -69,9 +72,6 @@ defmodule JiraVelocity do
   end
 
   defp get_json(config, path) do
-    :inets.start()
-    :ssl.start()
-
     headers = [
       {'Authorization',
        to_charlist("Basic #{Base.encode64("#{config.email}:#{config.api_token}")}")},
