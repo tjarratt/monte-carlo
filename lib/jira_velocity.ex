@@ -52,9 +52,6 @@ defmodule JiraVelocity do
   end
 
   defp count_completed_stories(config, filter_id, {start_date, end_date}) do
-    if not is_integer(filter_id) do
-      {:error, "jira board filter id is invalid"}
-    else
     jql =
       "filter = #{filter_id} AND issuetype = Story AND statusCategory = Done " <>
         "AND resolved > \"#{Date.to_iso8601(start_date)}\" " <>
@@ -72,7 +69,6 @@ defmodule JiraVelocity do
       _ ->
         {:error,
          "could not read completed stories for #{Date.to_iso8601(start_date)}..#{Date.to_iso8601(end_date)}"}
-    end
     end
   end
 
