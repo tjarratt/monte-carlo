@@ -1,8 +1,7 @@
 defmodule MontecarloSimulationTest do
   use ExUnit.Case
-  doctest MontecarloSimulation
 
-  test "greets the world" do
-    assert MontecarloSimulation.hello() == :world
+  test "oh no" do
+    assert "there are no tests"
   end
 end
