@@ -1,0 +1,5 @@
+# do not ignore the github workflow files, gitignore, or this file
+!/.github/
+!.gitignore
+!.ignore
+
