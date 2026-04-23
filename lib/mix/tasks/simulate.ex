@@ -58,7 +58,13 @@ defmodule Mix.Tasks.Simulate do
 
     IO.puts("Goal : deliver #{stories_remaining} stories before #{desired_release_date}")
     IO.puts("")
-    IO.puts("We will deliver on-time #{MonteCarloSimulation.percent(on_time, num_simulations)} % of the time")
-    IO.puts("We will deliver late    #{MonteCarloSimulation.percent(late, num_simulations)} % of the time")
+
+    IO.puts(
+      "We will deliver on-time #{MonteCarloSimulation.percent(on_time, num_simulations)} % of the time"
+    )
+
+    IO.puts(
+      "We will deliver late    #{MonteCarloSimulation.percent(late, num_simulations)} % of the time"
+    )
   end
 end
