@@ -115,7 +115,6 @@ defmodule Mix.Tasks.Simulate do
 
     results =
       simulations
-      |> Map.to_list()
       |> Enum.group_by(fn {days_elapsed, _occurrences} ->
         if days_elapsed <= working_days do
           :on_time
