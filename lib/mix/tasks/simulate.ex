@@ -12,7 +12,7 @@ defmodule Mix.Tasks.Simulate do
 
     board_id =
       case IO.gets("Jira board id: ") do
-        nil ->
+        :eof ->
           IO.puts("No input received for Jira board ID.")
           System.halt(1)
 
