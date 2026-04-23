@@ -4,12 +4,12 @@ defmodule Mix.Tasks.Simulate do
   @shortdoc "Runs a Monte Carlo simulation of an engineering team"
   @requirements ["app.start"]
   @friday 5
+  @num_simulations 100_000
 
   @impl Mix.Task
   def run(_args) do
     stories_remaining = prompt_stories_remaining()
     desired_release_date = prompt_release_date()
-    num_simulations = 100_000
 
     board_id = prompt_required("Jira board id: ")
 
@@ -31,7 +31,7 @@ defmodule Mix.Tasks.Simulate do
       |> length()
 
     results =
-      1..num_simulations
+      1..@num_simulations
       |> Enum.reduce(%{}, fn _simulation, acc ->
         days_to_complete = MonteCarloSimulation.forecast(0, stories_remaining, tickets_per_week)
 
@@ -53,11 +53,11 @@ defmodule Mix.Tasks.Simulate do
     IO.puts("")
 
     IO.puts(
-      "We will deliver on-time #{MonteCarloSimulation.percent(on_time, num_simulations)} % of the time"
+      "We will deliver on-time #{MonteCarloSimulation.percent(on_time, @num_simulations)} % of the time"
     )
 
     IO.puts(
-      "We will deliver late    #{MonteCarloSimulation.percent(late, num_simulations)} % of the time"
+      "We will deliver late    #{MonteCarloSimulation.percent(late, @num_simulations)} % of the time"
     )
   end
 
