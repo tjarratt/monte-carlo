@@ -1,11 +1,28 @@
 defmodule MonteCarloSimulation do
-  def forecast(days_thus_far, stories_remaining, tickets_per_week) do
-    stories_delivered = Enum.random(tickets_per_week)
+  defstruct [:stories_remaining, :velocity]
 
-    if stories_delivered >= stories_remaining do
+  def new(stories_remaining: stories_remaining, velocity: velocity) do
+    %__MODULE__{
+      stories_remaining: stories_remaining,
+      velocity: velocity
+    }
+  end
+
+  def forecast(days_thus_far, scenario = %__MODULE__{}) do
+    stories_delivered = Enum.random(scenario.velocity)
+
+    if stories_delivered >= scenario.stories_remaining do
+      # we're done, yield the total number of days it took
       days_thus_far + 5
     else
-      forecast(days_thus_far + 5, stories_remaining - stories_delivered, tickets_per_week)
+      # simulate another week until we are done
+      scenario =
+        new(
+          stories_remaining: scenario.stories_remaining - stories_delivered,
+          velocity: scenario.velocity
+        )
+
+      forecast(days_thus_far + 5, scenario)
     end
   end
 

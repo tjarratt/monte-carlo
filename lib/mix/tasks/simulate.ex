@@ -30,10 +30,16 @@ defmodule Mix.Tasks.Simulate do
       |> Enum.filter(&(&1 <= 5))
       |> length()
 
+    scenario =
+      MonteCarloSimulation.new(
+        stories_remaining: stories_remaining,
+        velocity: tickets_per_week
+      )
+
     results =
       1..@num_simulations
       |> Enum.reduce(%{}, fn _simulation, acc ->
-        days_to_complete = MonteCarloSimulation.forecast(0, stories_remaining, tickets_per_week)
+        days_to_complete = MonteCarloSimulation.forecast(0, scenario)
 
         Map.update(acc, days_to_complete, 1, fn existing_count -> existing_count + 1 end)
       end)
