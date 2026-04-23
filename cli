@@ -2,12 +2,36 @@
 
 stories_remaining = 37
 desired_release_date = ~D[2025-09-29]
-tickets_per_week = [5, 4, 4, 6, 9, 8, 7, 11, 5, 8]
 num_simulations = 101600
 
 Code.require_file "./lib/montecarlo_simulation.ex"
+Code.require_file "./lib/jira_velocity.ex"
 
-working_days = Date.range(Date.utc_today(), desired_release_date) |> Enum.map(& Date.day_of_week/1) |> Enum.filter(& &1 <= 5) |> length()
+board_id =
+  case IO.gets("Jira board id: ") do
+    nil ->
+      IO.puts("No input received for Jira board ID.")
+      System.halt(1)
+
+    value -> String.trim(value)
+  end
+
+tickets_per_week =
+  case JiraVelocity.fetch_velocity(board_id) do
+    {:ok, weekly_counts} ->
+      IO.puts("Using calculated velocity from jira: #{inspect(weekly_counts)}")
+      weekly_counts
+
+    {:error, reason} ->
+      IO.puts("Could not fetch Jira weekly velocity: #{reason}")
+      System.halt(1)
+  end
+
+working_days =
+  Date.range(Date.utc_today(), desired_release_date)
+  |> Enum.map(&Date.day_of_week/1)
+  |> Enum.filter(&(&1 <= 5))
+  |> length()
 
 results =
   1..num_simulations
