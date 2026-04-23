@@ -117,7 +117,7 @@ defmodule Mix.Tasks.Simulate do
 
     weekly_distribution =
       Enum.reduce(days_to_complete_counts, %{}, fn {days_elapsed, occurrences}, acc ->
-        week_number = div(days_elapsed - 1, 5) + 1
+        week_number = max(div(days_elapsed - 1, 5) + 1, 1)
 
         Map.update(acc, week_number, occurrences, fn existing_count ->
           existing_count + occurrences
@@ -143,10 +143,12 @@ defmodule Mix.Tasks.Simulate do
          scaled_bar_length = round(percentage * bar_width / 100)
 
          bar_length = scaled_bar_length |> max(base_bar_length) |> min(bar_width)
-
          bar = String.duplicate("█", bar_length)
+         week_label = String.pad_leading(Integer.to_string(week_number), 4)
+         padded_bar = String.pad_trailing(bar, bar_width)
+         formatted_percentage = :erlang.float_to_binary(percentage, decimals: 2)
 
-         "#{String.pad_leading(Integer.to_string(week_number), 4)} | #{String.pad_trailing(bar, bar_width)} #{:erlang.float_to_binary(percentage, decimals: 2)}%"
+         "#{week_label} | #{padded_bar} #{formatted_percentage}%"
        end))
   end
 
