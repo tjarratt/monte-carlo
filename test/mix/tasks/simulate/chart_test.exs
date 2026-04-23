@@ -1,10 +1,12 @@
 defmodule Mix.Tasks.Simulate.ChartTest do
   use ExUnit.Case, async: true
 
+  alias Mix.Tasks.Simulate.BarChart
+
   describe "render_weekly_distribution_chart/3" do
     test "renders sorted rows with percentages and bars" do
       chart =
-        Mix.Tasks.Simulate.render_weekly_distribution_chart(
+        BarChart.render(
           %{3 => 25_000, 1 => 50_000, 2 => 25_000},
           100_000,
           10
@@ -18,7 +20,7 @@ defmodule Mix.Tasks.Simulate.ChartTest do
 
     test "renders an empty bar for zero-percent weeks" do
       chart =
-        Mix.Tasks.Simulate.render_weekly_distribution_chart(
+        BarChart.render(
           %{1 => 0, 2 => 100_000},
           100_000,
           10

@@ -5,6 +5,27 @@ defmodule Mix.Tasks.Simulate do
   @requirements ["app.start"]
   @num_simulations 100_000
 
+  defmodule BarChart do
+    def render(weekly_distribution, number_simulations, bar_width \\ 40) do
+      ["Week | % of simulations"] ++
+        (weekly_distribution
+         |> Enum.sort_by(fn {week_number, _occurrences} -> week_number end)
+         |> Enum.map(fn {week_number, occurrences} ->
+           percentage = occurrences / number_simulations * 100
+           base_bar_length = if occurrences > 0, do: 1, else: 0
+           scaled_bar_length = round(percentage * bar_width / 100)
+
+           bar_length = scaled_bar_length |> max(base_bar_length) |> min(bar_width)
+           bar = String.duplicate("█", bar_length)
+           week_label = String.pad_leading(Integer.to_string(week_number), 4)
+           padded_bar = String.pad_trailing(bar, bar_width)
+           formatted_percentage = :erlang.float_to_binary(percentage, decimals: 2)
+
+           "#{week_label} | #{padded_bar} #{formatted_percentage}%"
+         end))
+    end
+  end
+
   defmodule UserInput do
     @friday 5
 
@@ -128,31 +149,20 @@ defmodule Mix.Tasks.Simulate do
     IO.puts("Completion distribution by week")
 
     weekly_distribution
-    |> render_weekly_distribution_chart(@num_simulations)
-    |> Enum.each(&IO.puts/1)
-  end
-
-  @doc false
-  def render_weekly_distribution_chart(weekly_distribution, number_simulations, bar_width \\ 40) do
-    ["Week | % of simulations"] ++
-      (weekly_distribution
-       |> Enum.sort_by(fn {week_number, _occurrences} -> week_number end)
-       |> Enum.map(fn {week_number, occurrences} ->
-         percentage = occurrences / number_simulations * 100
-         base_bar_length = if occurrences > 0, do: 1, else: 0
-         scaled_bar_length = round(percentage * bar_width / 100)
-
-         bar_length = scaled_bar_length |> max(base_bar_length) |> min(bar_width)
-         bar = String.duplicate("█", bar_length)
-         week_label = String.pad_leading(Integer.to_string(week_number), 4)
-         padded_bar = String.pad_trailing(bar, bar_width)
-         formatted_percentage = :erlang.float_to_binary(percentage, decimals: 2)
-
-         "#{week_label} | #{padded_bar} #{formatted_percentage}%"
-       end))
+    |> BarChart.render(@num_simulations)
+    |> Enum.each(fn line -> IO.puts(line) end)
   end
 
   # # # Private
+
+  defp current_week() do
+    {_year, week_number} = :calendar.iso_week_number()
+    week_number
+  end
+
+  defp most_likely(weekly_distributions) do
+    weekly_distributions |> Enum.max_by(&elem(&1, 1)) |> elem(0)
+  end
 
   defp calculate_historical_velocity!(board_id) do
     case JiraVelocity.fetch_velocity(board_id) do
