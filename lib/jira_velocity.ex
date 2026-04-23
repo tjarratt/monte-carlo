@@ -11,9 +11,22 @@ defmodule JiraVelocity do
       Date.utc_today()
       |> week_ranges(@weeks_to_fetch)
       |> Enum.map(&count_completed_stories(config, filter_id, &1))
+      |> strip_weeks_without_velocity()
       |> collect_counts()
     end
   end
+
+  # problem  : we may request N weeks of issues, but the filter may
+  #           only show issues where resolvedDate >= M (where M < N)
+  # solution : strip any weeks where we had zero velocity
+  #            this ensures we keep weeks with zero velocity
+  #            that occurred after this first non-zero velocity week
+  defp strip_weeks_without_velocity([{:ok, 0} | other_weeks]) do
+    # continue recursing until we see a week with non-zero velocity
+    strip_weeks_without_velocity(other_weeks)
+  end
+
+  defp strip_weeks_without_velocity(results), do: results
 
   defp validate_board_id(input) do
     board_id =
