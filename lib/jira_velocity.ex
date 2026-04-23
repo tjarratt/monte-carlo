@@ -2,9 +2,6 @@ defmodule JiraVelocity do
   @weeks_to_fetch 10
 
   def fetch_velocity(board_id) do
-    :inets.start()
-    :ssl.start()
-
     with {:ok, normalized_board_id} <- validate_board_id(board_id),
          {:ok, config} <- jira_config(),
          {:ok, filter_id} <- board_filter_id(config, normalized_board_id) do
