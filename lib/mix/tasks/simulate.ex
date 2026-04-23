@@ -30,6 +30,16 @@ defmodule Mix.Tasks.Simulate do
     @friday 5
 
     @doc false
+    def parse_board_id(input) do
+      board_id = String.trim(input)
+
+      cond do
+        board_id == "" -> {:error, "jira board id cannot be empty"}
+        Regex.match?(~r/^\d+$/, board_id) -> {:ok, board_id}
+        true -> {:error, "jira board id must be a numeric value"}
+      end
+    end
+
     def parse_stories_remaining(input) do
       case Integer.parse(String.trim(input)) do
         {stories, ""} when stories > 0 -> {:ok, stories}
@@ -84,7 +94,7 @@ defmodule Mix.Tasks.Simulate do
 
   @impl Mix.Task
   def run(_args) do
-    board_id = prompt_required("Jira board id: ")
+    board_id = prompt_board_id()
     stories_remaining = prompt_stories_remaining()
     desired_release_date = prompt_release_date()
     velocity = calculate_historical_velocity!(board_id)
@@ -175,13 +185,18 @@ defmodule Mix.Tasks.Simulate do
 
   # # # User Input
 
+  defp prompt_board_id do
+    prompt_until_valid("Jira board id", :board_id, &UserInput.parse_board_id/1)
+  end
+
   defp prompt_stories_remaining do
-    prompt_until_valid("Stories to deliver: ", &UserInput.parse_stories_remaining/1)
+    prompt_until_valid("Stories to deliver", :stories_remaining, &UserInput.parse_stories_remaining/1)
   end
 
   defp prompt_release_date do
     prompt_until_valid(
-      "Desired release date (YYYY-MM-DD): ",
+      "Desired release date (YYYY-MM-DD)",
+      :release_date,
       &UserInput.parse_release_date/1,
       fn warning ->
         if warning, do: IO.puts(warning)
@@ -189,25 +204,37 @@ defmodule Mix.Tasks.Simulate do
     )
   end
 
-  defp prompt_until_valid(prompt, parser, on_parsed \\ fn _ -> :ok end) do
-    value = prompt_required(prompt)
+  defp prompt_until_valid(prompt_label, cache_key, parser, on_parsed \\ fn _ -> :ok end) do
+    cached = Mix.Tasks.Simulate.InputCache.read(cache_key)
 
-    case parser.(value) do
+    full_prompt =
+      if cached do
+        "#{prompt_label} [#{cached}]: "
+      else
+        "#{prompt_label}: "
+      end
+
+    raw = get_input(full_prompt)
+    input = if raw == "" && cached != nil, do: cached, else: raw
+
+    case parser.(input) do
       {:ok, parsed_value} ->
+        Mix.Tasks.Simulate.InputCache.write(cache_key, input)
         on_parsed.(nil)
         parsed_value
 
       {:ok, parsed_value, warning} ->
+        Mix.Tasks.Simulate.InputCache.write(cache_key, input)
         on_parsed.(warning)
         parsed_value
 
       {:error, reason} ->
         IO.puts("Invalid input: #{reason}")
-        prompt_until_valid(prompt, parser, on_parsed)
+        prompt_until_valid(prompt_label, cache_key, parser, on_parsed)
     end
   end
 
-  defp prompt_required(prompt) do
+  defp get_input(prompt) do
     case IO.gets(prompt) do
       :eof ->
         IO.puts("No input received.")

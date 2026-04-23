@@ -3,6 +3,28 @@ defmodule Mix.Tasks.Simulate.UserInputTest do
 
   alias Mix.Tasks.Simulate.UserInput
 
+  describe "parse_board_id/1" do
+    test "accepts numeric board ids" do
+      assert {:ok, "123"} = UserInput.parse_board_id("123")
+      assert {:ok, "1"} = UserInput.parse_board_id("1")
+    end
+
+    test "trims whitespace before validating" do
+      assert {:ok, "42"} = UserInput.parse_board_id("  42  ")
+    end
+
+    test "rejects empty input" do
+      assert {:error, "jira board id cannot be empty"} = UserInput.parse_board_id("")
+      assert {:error, _} = UserInput.parse_board_id("   ")
+    end
+
+    test "rejects non-numeric input" do
+      assert {:error, "jira board id must be a numeric value"} = UserInput.parse_board_id("abc")
+      assert {:error, _} = UserInput.parse_board_id("12abc")
+      assert {:error, _} = UserInput.parse_board_id("1.5")
+    end
+  end
+
   describe "parse_stories_remaining/1" do
     test "accepts integers greater than zero" do
       assert {:ok, 12} = UserInput.parse_stories_remaining("12")
