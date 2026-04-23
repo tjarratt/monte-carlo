@@ -85,13 +85,16 @@ defmodule Mix.Tasks.Simulate do
         velocity: velocity
       )
 
-    results =
+    days_to_complete_counts =
       1..@num_simulations
       |> Enum.reduce(%{}, fn _simulation, acc ->
         days_to_complete = MonteCarloSimulation.forecast(0, scenario)
 
         Map.update(acc, days_to_complete, 1, fn existing_count -> existing_count + 1 end)
       end)
+
+    results =
+      days_to_complete_counts
       |> Map.to_list()
       |> Enum.group_by(fn {days_elapsed, _occurrences} ->
         if days_elapsed <= working_days do
@@ -111,6 +114,44 @@ defmodule Mix.Tasks.Simulate do
     IO.puts(
       "We will deliver late    #{MonteCarloSimulation.percent(late, @num_simulations)} % of the time"
     )
+
+    weekly_distribution =
+      Enum.reduce(days_to_complete_counts, %{}, fn {days_elapsed, occurrences}, acc ->
+        week_number = div(days_elapsed, 5)
+
+        Map.update(acc, week_number, occurrences, fn existing_count ->
+          existing_count + occurrences
+        end)
+      end)
+
+    IO.puts("")
+    IO.puts("Completion distribution by week")
+
+    weekly_distribution
+    |> render_weekly_distribution_chart(@num_simulations)
+    |> Enum.each(&IO.puts/1)
+  end
+
+  @doc false
+  def render_weekly_distribution_chart(weekly_distribution, number_simulations, bar_width \\ 40) do
+    ["Week | % of simulations"] ++
+      (weekly_distribution
+       |> Enum.sort_by(fn {week_number, _occurrences} -> week_number end)
+       |> Enum.map(fn {week_number, occurrences} ->
+         percentage = occurrences / number_simulations * 100
+
+         bar_length =
+           percentage
+           |> Kernel./(100)
+           |> Kernel.*(bar_width)
+           |> round()
+           |> max(if(occurrences > 0, do: 1, else: 0))
+           |> min(bar_width)
+
+         bar = String.duplicate("█", bar_length)
+
+         "#{String.pad_leading(Integer.to_string(week_number), 4)} | #{String.pad_trailing(bar, bar_width)} #{:erlang.float_to_binary(percentage, decimals: 2)}%"
+       end))
   end
 
   # # # Private
