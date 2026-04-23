@@ -140,12 +140,12 @@ defmodule Mix.Tasks.Simulate do
       date
     else
       days_since_previous_friday = rem(Date.day_of_week(date) - @friday + 7, 7)
-      days_until_next_friday = rem(@friday - Date.day_of_week(date) + 7, 7)
+      days_until_next_friday = 7 - days_since_previous_friday
 
       previous_friday = Date.add(date, -days_since_previous_friday)
       next_friday = Date.add(date, days_until_next_friday)
 
-      if days_since_previous_friday < days_until_next_friday do
+      if days_since_previous_friday <= days_until_next_friday do
         previous_friday
       else
         next_friday
