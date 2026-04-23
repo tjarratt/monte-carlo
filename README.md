@@ -2,8 +2,8 @@
 
 ## Usage
 
-* as a cli
-    - you can run `./cli` from the root of the repo
+* as a mix task
+    - you can run `mix simulate` from the root of the repo
     - the CLI prompts for a Jira board id and fetches the weekly story completion counts for the last 10 weeks
     - set these environment variables before running it:
       - `JIRA_BASE_URL` (for example `https://your-team.atlassian.net`)
