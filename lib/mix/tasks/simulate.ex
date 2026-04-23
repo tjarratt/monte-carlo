@@ -1,7 +1,7 @@
 defmodule Mix.Tasks.Simulate do
   use Mix.Task
 
-  @shortdoc "Runs a Monte Carlo simulation using Jira velocity"
+  @shortdoc "Runs a Monte Carlo simulation of an engineering team"
   @requirements ["app.start"]
 
   @impl Mix.Task
