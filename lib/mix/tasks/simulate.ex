@@ -215,7 +215,7 @@ defmodule Mix.Tasks.Simulate do
       end
 
     raw = get_input(full_prompt)
-    input = if raw == "" && cached != nil, do: cached, else: raw
+    input = if raw == "" && !is_nil(cached), do: cached, else: raw
 
     case parser.(input) do
       {:ok, parsed_value} ->
