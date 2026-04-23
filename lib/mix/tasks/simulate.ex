@@ -87,12 +87,11 @@ defmodule Mix.Tasks.Simulate do
     board_id = prompt_required("Jira board id: ")
     stories_remaining = prompt_stories_remaining()
     desired_release_date = prompt_release_date()
+    velocity = calculate_historical_velocity!(board_id)
 
     IO.puts("")
     IO.puts("Goal : deliver #{stories_remaining} stories before #{desired_release_date}")
     IO.puts("")
-
-    velocity = calculate_historical_velocity!(board_id)
 
     working_days =
       Date.range(Date.utc_today(), desired_release_date)
