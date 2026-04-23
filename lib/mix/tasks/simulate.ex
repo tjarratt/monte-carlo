@@ -12,6 +12,10 @@ defmodule Mix.Tasks.Simulate do
     stories_remaining = prompt_stories_remaining()
     desired_release_date = prompt_release_date()
 
+    IO.puts("")
+    IO.puts("Goal : deliver #{stories_remaining} stories before #{desired_release_date}")
+    IO.puts("")
+
     velocity = calculate_historical_velocity!(board_id)
 
     working_days =
@@ -44,9 +48,6 @@ defmodule Mix.Tasks.Simulate do
 
     on_time = Map.get(results, :on_time, [])
     late = Map.get(results, :late, [])
-
-    IO.puts("Goal : deliver #{stories_remaining} stories before #{desired_release_date}")
-    IO.puts("")
 
     IO.puts(
       "We will deliver on-time #{MonteCarloSimulation.percent(on_time, @num_simulations)} % of the time"
