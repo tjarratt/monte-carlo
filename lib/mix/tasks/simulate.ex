@@ -61,12 +61,24 @@ defmodule Mix.Tasks.Simulate do
     )
   end
 
+  # # # User Input
+
+  defp prompt_stories_remaining do
+    prompt_until_valid("Stories to deliver: ", &parse_stories_remaining/1)
+  end
+
   @doc false
   def parse_stories_remaining(input) do
     case Integer.parse(String.trim(input)) do
       {stories, ""} when stories > 0 -> {:ok, stories}
       _ -> {:error, "stories to deliver must be an integer greater than 0"}
     end
+  end
+
+  defp prompt_release_date do
+    prompt_until_valid("Desired release date (YYYY-MM-DD): ", &parse_release_date/1, fn warning ->
+      if warning, do: IO.puts(warning)
+    end)
   end
 
   @doc false
@@ -96,14 +108,22 @@ defmodule Mix.Tasks.Simulate do
     end
   end
 
-  defp prompt_stories_remaining do
-    prompt_until_valid("Stories to deliver: ", &parse_stories_remaining/1)
-  end
+  defp nearest_friday(date) do
+    if Date.day_of_week(date) == @friday do
+      date
+    else
+      days_since_previous_friday = rem(Date.day_of_week(date) - @friday + 7, 7)
+      days_until_next_friday = 7 - days_since_previous_friday
 
-  defp prompt_release_date do
-    prompt_until_valid("Desired release date (YYYY-MM-DD): ", &parse_release_date/1, fn warning ->
-      if warning, do: IO.puts(warning)
-    end)
+      previous_friday = Date.add(date, -days_since_previous_friday)
+      next_friday = Date.add(date, days_until_next_friday)
+
+      if days_since_previous_friday <= days_until_next_friday do
+        previous_friday
+      else
+        next_friday
+      end
+    end
   end
 
   defp prompt_until_valid(prompt, parser, on_parsed \\ fn _ -> :ok end) do
@@ -132,24 +152,6 @@ defmodule Mix.Tasks.Simulate do
 
       value ->
         String.trim(value)
-    end
-  end
-
-  defp nearest_friday(date) do
-    if Date.day_of_week(date) == @friday do
-      date
-    else
-      days_since_previous_friday = rem(Date.day_of_week(date) - @friday + 7, 7)
-      days_until_next_friday = 7 - days_since_previous_friday
-
-      previous_friday = Date.add(date, -days_since_previous_friday)
-      next_friday = Date.add(date, days_until_next_friday)
-
-      if days_since_previous_friday <= days_until_next_friday do
-        previous_friday
-      else
-        next_friday
-      end
     end
   end
 end
