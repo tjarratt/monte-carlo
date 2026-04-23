@@ -3,22 +3,15 @@ defmodule Mix.Tasks.Simulate do
 
   @shortdoc "Runs a Monte Carlo simulation of an engineering team"
   @requirements ["app.start"]
+  @friday 5
 
   @impl Mix.Task
   def run(_args) do
-    stories_remaining = 37
-    desired_release_date = ~D[2025-09-29]
+    stories_remaining = prompt_stories_remaining()
+    desired_release_date = prompt_release_date()
     num_simulations = 100_000
 
-    board_id =
-      case IO.gets("Jira board id: ") do
-        :eof ->
-          IO.puts("No input received for Jira board ID.")
-          System.halt(1)
-
-        value ->
-          String.trim(value)
-      end
+    board_id = prompt_required("Jira board id: ")
 
     tickets_per_week =
       case JiraVelocity.fetch_velocity(board_id) do
@@ -66,5 +59,93 @@ defmodule Mix.Tasks.Simulate do
     IO.puts(
       "We will deliver late    #{MonteCarloSimulation.percent(late, num_simulations)} % of the time"
     )
+  end
+
+  @doc false
+  def parse_stories_remaining(input) do
+    case Integer.parse(String.trim(input)) do
+      {stories, ""} when stories > 0 -> {:ok, stories}
+      _ -> {:error, "stories to deliver must be an integer greater than 0"}
+    end
+  end
+
+  @doc false
+  def parse_release_date(input, today \\ Date.utc_today()) do
+    with trimmed when trimmed != "" <- String.trim(input),
+         {:ok, release_date} <- Date.from_iso8601(trimmed),
+         :gt <- Date.compare(release_date, today) do
+      if Date.day_of_week(release_date) == @friday do
+        {:ok, release_date, nil}
+      else
+        rounded_date = nearest_friday(release_date)
+
+        if Date.compare(rounded_date, today) == :gt do
+          warning =
+            "Warning: #{Date.to_iso8601(release_date)} is not a Friday; using nearest Friday #{Date.to_iso8601(rounded_date)}."
+
+          {:ok, rounded_date, warning}
+        else
+          {:error, "nearest Friday must be in the future"}
+        end
+      end
+    else
+      "" -> {:error, "release date is required"}
+      {:error, _reason} -> {:error, "release date must be in YYYY-MM-DD format"}
+      :lt -> {:error, "release date must be in the future"}
+      :eq -> {:error, "release date must be in the future"}
+    end
+  end
+
+  defp prompt_stories_remaining do
+    prompt_until_valid("Stories to deliver: ", &parse_stories_remaining/1)
+  end
+
+  defp prompt_release_date do
+    prompt_until_valid("Desired release date (YYYY-MM-DD): ", &parse_release_date/1, fn warning ->
+      if warning, do: IO.puts(warning)
+    end)
+  end
+
+  defp prompt_until_valid(prompt, parser, on_success \\ fn _ -> :ok end) do
+    value = prompt_required(prompt)
+
+    case parser.(value) do
+      {:ok, parsed_value} ->
+        on_success.(nil)
+        parsed_value
+
+      {:ok, parsed_value, warning} ->
+        on_success.(warning)
+        parsed_value
+
+      {:error, reason} ->
+        IO.puts("Invalid input: #{reason}")
+        prompt_until_valid(prompt, parser, on_success)
+    end
+  end
+
+  defp prompt_required(prompt) do
+    case IO.gets(prompt) do
+      :eof ->
+        IO.puts("No input received.")
+        System.halt(1)
+
+      value ->
+        String.trim(value)
+    end
+  end
+
+  defp nearest_friday(date) do
+    days_since_previous_friday = rem(Date.day_of_week(date) - @friday + 7, 7)
+    days_until_next_friday = rem(@friday - Date.day_of_week(date) + 7, 7)
+
+    previous_friday = Date.add(date, -days_since_previous_friday)
+    next_friday = Date.add(date, days_until_next_friday)
+
+    if days_since_previous_friday <= days_until_next_friday do
+      previous_friday
+    else
+      next_friday
+    end
   end
 end
