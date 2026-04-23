@@ -105,7 +105,7 @@ defmodule Mix.Tasks.Simulate do
         velocity: velocity
       )
 
-    days_to_complete_counts =
+    simulations =
       1..@num_simulations
       |> Enum.reduce(%{}, fn _simulation, acc ->
         days_to_complete = MonteCarloSimulation.forecast(0, scenario)
@@ -114,7 +114,7 @@ defmodule Mix.Tasks.Simulate do
       end)
 
     results =
-      days_to_complete_counts
+      simulations
       |> Map.to_list()
       |> Enum.group_by(fn {days_elapsed, _occurrences} ->
         if days_elapsed <= working_days do
@@ -124,19 +124,11 @@ defmodule Mix.Tasks.Simulate do
         end
       end)
 
-    on_time = Map.get(results, :on_time, [])
-    late = Map.get(results, :late, [])
-
-    IO.puts(
-      "We will deliver on-time #{MonteCarloSimulation.percent(on_time, @num_simulations)} % of the time"
-    )
-
-    IO.puts(
-      "We will deliver late    #{MonteCarloSimulation.percent(late, @num_simulations)} % of the time"
-    )
+    on_time = Map.get(results, :on_time, []) |> MonteCarloSimulation.percent(@num_simulations)
+    late = Map.get(results, :late, []) |> MonteCarloSimulation.percent(@num_simulations)
 
     weekly_distribution =
-      Enum.reduce(days_to_complete_counts, %{}, fn {days_elapsed, occurrences}, acc ->
+      Enum.reduce(simulations, %{}, fn {days_elapsed, occurrences}, acc ->
         week_number = max(div(days_elapsed - 1, 5) + 1, 1)
 
         Map.update(acc, week_number, occurrences, fn existing_count ->
