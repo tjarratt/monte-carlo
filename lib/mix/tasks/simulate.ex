@@ -106,21 +106,21 @@ defmodule Mix.Tasks.Simulate do
     end)
   end
 
-  defp prompt_until_valid(prompt, parser, on_success \\ fn _ -> :ok end) do
+  defp prompt_until_valid(prompt, parser, on_parsed \\ fn _ -> :ok end) do
     value = prompt_required(prompt)
 
     case parser.(value) do
       {:ok, parsed_value} ->
-        on_success.(nil)
+        on_parsed.(nil)
         parsed_value
 
       {:ok, parsed_value, warning} ->
-        on_success.(warning)
+        on_parsed.(warning)
         parsed_value
 
       {:error, reason} ->
         IO.puts("Invalid input: #{reason}")
-        prompt_until_valid(prompt, parser, on_success)
+        prompt_until_valid(prompt, parser, on_parsed)
     end
   end
 
@@ -136,16 +136,20 @@ defmodule Mix.Tasks.Simulate do
   end
 
   defp nearest_friday(date) do
-    days_since_previous_friday = rem(Date.day_of_week(date) - @friday + 7, 7)
-    days_until_next_friday = rem(@friday - Date.day_of_week(date) + 7, 7)
-
-    previous_friday = Date.add(date, -days_since_previous_friday)
-    next_friday = Date.add(date, days_until_next_friday)
-
-    if days_since_previous_friday <= days_until_next_friday do
-      previous_friday
+    if Date.day_of_week(date) == @friday do
+      date
     else
-      next_friday
+      days_since_previous_friday = rem(Date.day_of_week(date) - @friday + 7, 7)
+      days_until_next_friday = rem(@friday - Date.day_of_week(date) + 7, 7)
+
+      previous_friday = Date.add(date, -days_since_previous_friday)
+      next_friday = Date.add(date, days_until_next_friday)
+
+      if days_since_previous_friday < days_until_next_friday do
+        previous_friday
+      else
+        next_friday
+      end
     end
   end
 end
