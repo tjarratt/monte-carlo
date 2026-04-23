@@ -136,8 +136,15 @@ defmodule Mix.Tasks.Simulate do
         end)
       end)
 
+    IO.puts("Results")
+    IO.puts("-------")
     IO.puts("")
-    IO.puts("Completion distribution by week")
+    IO.puts("We are on-time #{on_time} % of the time")
+    IO.puts("We are late    #{late} % of the time")
+    IO.puts("")
+    IO.puts("Current week is #{current_week()}")
+    IO.puts("Most likely delivery is by end of week #{most_likely(weekly_distribution)}")
+    IO.puts("")
 
     weekly_distribution
     |> BarChart.render(@num_simulations)
