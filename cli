@@ -2,7 +2,7 @@
 
 stories_remaining = 37
 desired_release_date = ~D[2025-09-29]
-num_simulations = 101600
+num_simulations = 100_000
 
 Code.require_file "./lib/montecarlo_simulation.ex"
 Code.require_file "./lib/jira_velocity.ex"
