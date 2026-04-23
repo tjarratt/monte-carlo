@@ -8,21 +8,11 @@ defmodule Mix.Tasks.Simulate do
 
   @impl Mix.Task
   def run(_args) do
+    board_id = prompt_required("Jira board id: ")
     stories_remaining = prompt_stories_remaining()
     desired_release_date = prompt_release_date()
 
-    board_id = prompt_required("Jira board id: ")
-
-    velocity =
-      case JiraVelocity.fetch_velocity(board_id) do
-        {:ok, weekly_counts} ->
-          IO.puts("Using calculated velocity from jira: #{inspect(weekly_counts)}")
-          weekly_counts
-
-        {:error, reason} ->
-          IO.puts("Could not fetch Jira weekly velocity: #{reason}")
-          System.halt(1)
-      end
+    velocity = calculate_historical_velocity!(board_id)
 
     working_days =
       Date.range(Date.utc_today(), desired_release_date)
@@ -65,6 +55,20 @@ defmodule Mix.Tasks.Simulate do
     IO.puts(
       "We will deliver late    #{MonteCarloSimulation.percent(late, @num_simulations)} % of the time"
     )
+  end
+
+  # # # Private
+
+  defp calculate_historical_velocity!(board_id) do
+    case JiraVelocity.fetch_velocity(board_id) do
+      {:ok, weekly_counts} ->
+        IO.puts("Using calculated velocity from jira: #{inspect(weekly_counts)}")
+        weekly_counts
+
+      {:error, reason} ->
+        IO.puts("Could not fetch Jira weekly velocity: #{reason}")
+        System.halt(1)
+    end
   end
 
   # # # User Input
@@ -131,6 +135,8 @@ defmodule Mix.Tasks.Simulate do
       end
     end
   end
+
+  # IO
 
   defp prompt_until_valid(prompt, parser, on_parsed \\ fn _ -> :ok end) do
     value = prompt_required(prompt)
