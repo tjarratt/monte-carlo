@@ -13,7 +13,7 @@ defmodule Mix.Tasks.Simulate do
 
     board_id = prompt_required("Jira board id: ")
 
-    tickets_per_week =
+    velocity =
       case JiraVelocity.fetch_velocity(board_id) do
         {:ok, weekly_counts} ->
           IO.puts("Using calculated velocity from jira: #{inspect(weekly_counts)}")
@@ -33,7 +33,7 @@ defmodule Mix.Tasks.Simulate do
     scenario =
       MonteCarloSimulation.new(
         stories_remaining: stories_remaining,
-        velocity: tickets_per_week
+        velocity: velocity
       )
 
     results =
