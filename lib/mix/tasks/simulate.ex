@@ -192,7 +192,11 @@ defmodule Mix.Tasks.Simulate do
   end
 
   defp prompt_stories_remaining do
-    prompt_until_valid("Stories to deliver", :stories_remaining, &UserInput.parse_stories_remaining/1)
+    prompt_until_valid(
+      "Stories to deliver",
+      :stories_remaining,
+      &UserInput.parse_stories_remaining/1
+    )
   end
 
   defp prompt_release_date do
