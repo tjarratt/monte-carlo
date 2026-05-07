@@ -136,9 +136,11 @@ defmodule Mix.Tasks.Simulate do
     on_time = Map.get(results, :on_time, []) |> MonteCarloSimulation.percent(@num_simulations)
     late = Map.get(results, :late, []) |> MonteCarloSimulation.percent(@num_simulations)
 
+    current_week = current_week()
+
     weekly_distribution =
       Enum.reduce(simulations, %{}, fn {days_elapsed, occurrences}, acc ->
-        week_number = max(div(days_elapsed - 1, 5) + 1, 1)
+        week_number = current_week + max(div(days_elapsed - 1, 5) + 1, 1)
 
         Map.update(acc, week_number, occurrences, fn existing_count ->
           existing_count + occurrences
@@ -151,7 +153,7 @@ defmodule Mix.Tasks.Simulate do
     IO.puts("We are on-time #{on_time} % of the time")
     IO.puts("We are late    #{late} % of the time")
     IO.puts("")
-    IO.puts("Current week is #{current_week()}")
+    IO.puts("Current week is #{current_week}")
     IO.puts("Most likely delivery is by end of week #{most_likely(weekly_distribution)}")
     IO.puts("")
 
