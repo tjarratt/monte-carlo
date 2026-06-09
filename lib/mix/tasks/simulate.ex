@@ -98,16 +98,11 @@ defmodule Mix.Tasks.Simulate do
     stories_remaining = prompt_stories_remaining()
     desired_release_date = prompt_release_date()
     velocity = calculate_historical_velocity!(board_id)
+    working_days = working_days_until(desired_release_date)
 
     IO.puts("")
     IO.puts("Goal : deliver #{stories_remaining} stories before #{desired_release_date}")
     IO.puts("")
-
-    working_days =
-      Date.range(Date.utc_today(), desired_release_date)
-      |> Enum.map(&Date.day_of_week/1)
-      |> Enum.filter(&(&1 <= 5))
-      |> length()
 
     scenario =
       MonteCarloSimulation.new(
@@ -167,6 +162,13 @@ defmodule Mix.Tasks.Simulate do
   defp current_week() do
     {_year, week_number} = :calendar.iso_week_number()
     week_number
+  end
+
+  defp working_days_until(date) do
+    Date.range(Date.utc_today(), date)
+    |> Enum.map(&Date.day_of_week/1)
+    |> Enum.filter(&(&1 <= 5))
+    |> length()
   end
 
   defp most_likely(weekly_distributions) do
