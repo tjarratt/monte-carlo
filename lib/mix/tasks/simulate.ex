@@ -133,7 +133,7 @@ defmodule Mix.Tasks.Simulate do
 
     current_week = current_week()
 
-    weekly_distribution =
+    week_distribution =
       Enum.reduce(simulations, %{}, fn {days_elapsed, occurrences}, acc ->
         week_number = current_week + max(div(days_elapsed - 1, 5) + 1, 1)
 
@@ -149,10 +149,10 @@ defmodule Mix.Tasks.Simulate do
     IO.puts("We are late    #{late} % of the time")
     IO.puts("")
     IO.puts("Current week is #{current_week}")
-    IO.puts("Most likely delivery is by end of week #{most_likely(weekly_distribution)}")
+    IO.puts("Most likely delivery is by end of week #{most_likely(week_distribution)}")
     IO.puts("")
 
-    weekly_distribution
+    week_distribution
     |> BarChart.render(@num_simulations)
     |> Enum.each(fn line -> IO.puts(line) end)
   end
