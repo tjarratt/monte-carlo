@@ -75,7 +75,7 @@ defmodule JiraVelocity do
     path = "/rest/api/3/search/jql?jql=#{URI.encode_www_form(jql)}&maxResults=5000"
 
     with {:ok, payload} <- get_json(config, path),
-         issues when is_list(issues) <- Map.get(payload, "issues"),
+         issues when is_list(issues) <- payload |> Map.get("issues"),
          total <- length(issues) do
       {:ok, total}
     else
