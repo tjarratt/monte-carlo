@@ -16,3 +16,4 @@ result
 # language servers
 .elixir_ls/
 .expert
+tmp
