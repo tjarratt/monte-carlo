@@ -1,4 +1,4 @@
-defmodule MonteCarloSimulation do
+defmodule MonteCarlo.Simulation do
   defstruct [:stories_remaining, :velocity]
 
   def new(stories_remaining: stories_remaining, velocity: velocity) do

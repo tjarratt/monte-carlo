@@ -22,7 +22,7 @@ defmodule Mix.Tasks.Simulate do
     IO.puts("")
 
     scenario =
-      MonteCarloSimulation.new(
+      MonteCarlo.Simulation.new(
         stories_remaining: stories_remaining,
         velocity: velocity
       )
@@ -30,7 +30,7 @@ defmodule Mix.Tasks.Simulate do
     simulations =
       1..@num_simulations
       |> Enum.reduce(%{}, fn _simulation, acc ->
-        days_to_complete = MonteCarloSimulation.forecast(0, scenario)
+        days_to_complete = MonteCarlo.Simulation.forecast(0, scenario)
 
         Map.update(acc, days_to_complete, 1, fn existing_count -> existing_count + 1 end)
       end)
@@ -45,8 +45,8 @@ defmodule Mix.Tasks.Simulate do
         end
       end)
 
-    on_time = Map.get(results, :on_time, []) |> MonteCarloSimulation.percent(@num_simulations)
-    late = Map.get(results, :late, []) |> MonteCarloSimulation.percent(@num_simulations)
+    on_time = Map.get(results, :on_time, []) |> MonteCarlo.Simulation.percent(@num_simulations)
+    late = Map.get(results, :late, []) |> MonteCarlo.Simulation.percent(@num_simulations)
 
     current_week = current_week()
 
