@@ -9,8 +9,25 @@ defmodule Mix.Tasks.Simulate do
   alias Mix.Tasks.Simulate.InputCache
   alias Mix.Tasks.Simulate.UserInput
 
+  defp parse_args(args) do
+    flags =
+      args
+      |> Enum.chunk_every(2)
+      |> Enum.reduce(%{}, fn [flag, value], acc -> Map.put(acc, flag, value) end)
+
+    strategy = Map.get(flags, "--strategy") |> strategy_from!()
+
+    [strategy: strategy]
+  end
+
+  defp strategy_from!(nil), do: MonteCarlo.Simulation.Simple
+  defp strategy_from!("simple"), do: MonteCarlo.Simulation.Simple
+  defp strategy_from!(unknown), do: raise("Unknown strategy '#{unknown}'")
+
   @impl Mix.Task
-  def run(_args) do
+  def run(args) do
+    [strategy: strategy] = parse_args(args)
+
     board_id = prompt_board_id()
     stories_remaining = prompt_stories_remaining()
     desired_release_date = prompt_release_date()
@@ -22,7 +39,7 @@ defmodule Mix.Tasks.Simulate do
     IO.puts("")
 
     scenario =
-      MonteCarlo.Simulation.new(
+      strategy.new(
         stories_remaining: stories_remaining,
         velocity: velocity
       )
@@ -30,7 +47,7 @@ defmodule Mix.Tasks.Simulate do
     simulations =
       1..@num_simulations
       |> Enum.reduce(%{}, fn _simulation, acc ->
-        days_to_complete = MonteCarlo.Simulation.forecast(0, scenario)
+        days_to_complete = strategy.forecast(0, scenario)
 
         Map.update(acc, days_to_complete, 1, fn existing_count -> existing_count + 1 end)
       end)
