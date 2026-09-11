@@ -2,27 +2,13 @@ defmodule Mix.Tasks.Simulate do
   use Mix.Task
 
   @shortdoc "Runs a Monte Carlo simulation of an engineering team"
+
   @requirements ["app.start"]
   @num_simulations 100_000
 
   alias Mix.Tasks.Simulate.BarChart
   alias Mix.Tasks.Simulate.InputCache
   alias Mix.Tasks.Simulate.UserInput
-
-  defp parse_args(args) do
-    flags =
-      args
-      |> Enum.chunk_every(2)
-      |> Enum.reduce(%{}, fn [flag, value], acc -> Map.put(acc, flag, value) end)
-
-    strategy = Map.get(flags, "--strategy") |> strategy_from!()
-
-    [strategy: strategy]
-  end
-
-  defp strategy_from!(nil), do: MonteCarlo.Simulation.Simple
-  defp strategy_from!("simple"), do: MonteCarlo.Simulation.Simple
-  defp strategy_from!(unknown), do: raise("Unknown strategy '#{unknown}'")
 
   @impl Mix.Task
   def run(args) do
@@ -120,6 +106,23 @@ defmodule Mix.Tasks.Simulate do
         System.halt(1)
     end
   end
+
+  # # # Command-line Flags
+
+  defp parse_args(args) do
+    flags =
+      args
+      |> Enum.chunk_every(2)
+      |> Enum.reduce(%{}, fn [flag, value], acc -> Map.put(acc, flag, value) end)
+
+    strategy = Map.get(flags, "--strategy") |> strategy_from!()
+
+    [strategy: strategy]
+  end
+
+  defp strategy_from!(nil), do: MonteCarlo.Simulation.Simple
+  defp strategy_from!("simple"), do: MonteCarlo.Simulation.Simple
+  defp strategy_from!(unknown), do: raise("Unknown strategy '#{unknown}'")
 
   # # # User Input
 
