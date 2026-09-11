@@ -62,8 +62,8 @@ defmodule Mix.Tasks.Simulate do
         end
       end)
 
-    on_time = Map.get(results, :on_time, []) |> MonteCarlo.Simulation.percent(@num_simulations)
-    late = Map.get(results, :late, []) |> MonteCarlo.Simulation.percent(@num_simulations)
+    on_time = Map.get(results, :on_time, []) |> MonteCarlo.percent(@num_simulations)
+    late = Map.get(results, :late, []) |> MonteCarlo.percent(@num_simulations)
 
     current_week = current_week()
 
