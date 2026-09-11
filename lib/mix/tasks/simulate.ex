@@ -47,7 +47,7 @@ defmodule Mix.Tasks.Simulate do
     simulations =
       1..@num_simulations
       |> Enum.reduce(%{}, fn _simulation, acc ->
-        days_to_complete = strategy.forecast(0, scenario)
+        days_to_complete = strategy.forecast(scenario)
 
         Map.update(acc, days_to_complete, 1, fn existing_count -> existing_count + 1 end)
       end)

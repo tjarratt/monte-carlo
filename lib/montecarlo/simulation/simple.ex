@@ -8,7 +8,7 @@ defmodule MonteCarlo.Simulation.Simple do
     }
   end
 
-  def forecast(days_thus_far, scenario = %__MODULE__{}) do
+  def forecast(days_thus_far \\ 0, scenario = %__MODULE__{}) do
     stories_delivered = Enum.random(scenario.velocity)
 
     if stories_delivered >= scenario.stories_remaining do
