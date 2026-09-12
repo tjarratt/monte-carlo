@@ -12,6 +12,22 @@ defmodule Mix.Tasks.Simulate.UserInput do
     end
   end
 
+  @doc false
+  def parse_range(input) do
+    input = String.trim(input)
+
+    cond do
+      Regex.match?(~r"\d+\-\d+", input) ->
+        [start, stop] = String.split(input, "-") |> Enum.map(&String.to_integer/1)
+        range = Range.new(start, stop)
+        {:ok, range}
+
+      true ->
+        {:error, "range must be in format '0-3' (eg: 1-3, 1-5, 1-1)"}
+    end
+  end
+
+  @doc false
   def parse_stories_remaining(input) do
     case Integer.parse(String.trim(input)) do
       {stories, ""} when stories > 0 -> {:ok, stories}
@@ -19,6 +35,7 @@ defmodule Mix.Tasks.Simulate.UserInput do
     end
   end
 
+  @doc false
   def parse_release_date(input, today \\ Date.utc_today()) do
     with trimmed when trimmed != "" <- String.trim(input),
          {:ok, release_date} <- Date.from_iso8601(trimmed),

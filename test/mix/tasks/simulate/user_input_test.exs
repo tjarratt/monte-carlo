@@ -91,4 +91,20 @@ defmodule Mix.Tasks.Simulate.UserInputTest do
       assert date == @friday
     end
   end
+
+  describe "parse_range/1" do
+    test "returns the range when it can be parsed" do
+      {:ok, range} = UserInput.parse_range("6-7")
+
+      assert range.first == 6
+      assert range.last == 7
+      assert range.step == 1
+    end
+
+    test "returns an error when it cannot be parsed as a range" do
+      {:error, message} = UserInput.parse_range("whoopsie")
+
+      assert message =~ "range must be in format"
+    end
+  end
 end

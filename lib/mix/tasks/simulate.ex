@@ -104,7 +104,7 @@ defmodule Mix.Tasks.Simulate do
 
   defp strategy_from!(nil), do: MonteCarlo.Simulation.Simple
   defp strategy_from!("simple"), do: MonteCarlo.Simulation.Simple
-  # defp strategy_from!("buggy"), do: MonteCarlo.Simulation.Buggy
+  defp strategy_from!("buggy"), do: MonteCarlo.Simulation.Buggy
   defp strategy_from!(unknown), do: raise("Unknown strategy '#{unknown}'")
 
   # # # User Input
@@ -121,6 +121,14 @@ defmodule Mix.Tasks.Simulate do
         IO.puts("Could not fetch Jira weekly velocity: #{reason}")
         System.halt(1)
     end
+  end
+
+  def ask_for(:bugs) do
+    prompt_until_valid(
+      "How many new bugs are created per week",
+      :bug_rate,
+      &UserInput.parse_range/1
+    )
   end
 
   defp prompt_board_id do
