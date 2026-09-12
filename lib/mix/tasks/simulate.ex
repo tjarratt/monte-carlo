@@ -110,7 +110,7 @@ defmodule Mix.Tasks.Simulate do
   # # # User Input
 
   def ask_for(:velocity) do
-    board_id = prompt_board_id()
+    board_id = prompt_until_valid("Jira board id", :board_id, &UserInput.parse_board_id/1)
 
     case JiraVelocity.fetch_velocity(board_id) do
       {:ok, weekly_counts} ->
@@ -129,10 +129,6 @@ defmodule Mix.Tasks.Simulate do
       :bug_rate,
       &UserInput.parse_range/1
     )
-  end
-
-  defp prompt_board_id do
-    prompt_until_valid("Jira board id", :board_id, &UserInput.parse_board_id/1)
   end
 
   defp prompt_stories_remaining do
