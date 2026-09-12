@@ -14,25 +14,19 @@ defmodule Mix.Tasks.Simulate do
   def run(args) do
     [strategy: strategy] = parse_args(args)
 
-    board_id = prompt_board_id()
     stories_remaining = prompt_stories_remaining()
     desired_release_date = prompt_release_date()
-    velocity = calculate_historical_velocity!(board_id)
     working_days = working_days_until(desired_release_date)
+
+    scenario = strategy.new(input_reader: __MODULE__, stories_remaining: stories_remaining)
 
     IO.puts("")
     IO.puts("Goal : deliver #{stories_remaining} stories before #{desired_release_date}")
     IO.puts("")
 
-    scenario =
-      strategy.new(
-        stories_remaining: stories_remaining,
-        velocity: velocity
-      )
-
     simulations =
       1..@num_simulations
-      |> Enum.reduce(%{}, fn _simulation, acc ->
+      |> Enum.reduce(%{}, fn _index, acc ->
         days_to_complete = strategy.forecast(scenario)
 
         Map.update(acc, days_to_complete, 1, fn existing_count -> existing_count + 1 end)
@@ -95,18 +89,6 @@ defmodule Mix.Tasks.Simulate do
     weekly_distributions |> Enum.max_by(&elem(&1, 1)) |> elem(0)
   end
 
-  defp calculate_historical_velocity!(board_id) do
-    case JiraVelocity.fetch_velocity(board_id) do
-      {:ok, weekly_counts} ->
-        IO.puts("Using calculated velocity from jira: #{inspect(weekly_counts)}")
-        weekly_counts
-
-      {:error, reason} ->
-        IO.puts("Could not fetch Jira weekly velocity: #{reason}")
-        System.halt(1)
-    end
-  end
-
   # # # Command-line Flags
 
   defp parse_args(args) do
@@ -122,9 +104,24 @@ defmodule Mix.Tasks.Simulate do
 
   defp strategy_from!(nil), do: MonteCarlo.Simulation.Simple
   defp strategy_from!("simple"), do: MonteCarlo.Simulation.Simple
+  # defp strategy_from!("buggy"), do: MonteCarlo.Simulation.Buggy
   defp strategy_from!(unknown), do: raise("Unknown strategy '#{unknown}'")
 
   # # # User Input
+
+  def ask_for(:velocity) do
+    board_id = prompt_board_id()
+
+    case JiraVelocity.fetch_velocity(board_id) do
+      {:ok, weekly_counts} ->
+        IO.puts("Using calculated velocity from jira: #{inspect(weekly_counts)}")
+        weekly_counts
+
+      {:error, reason} ->
+        IO.puts("Could not fetch Jira weekly velocity: #{reason}")
+        System.halt(1)
+    end
+  end
 
   defp prompt_board_id do
     prompt_until_valid("Jira board id", :board_id, &UserInput.parse_board_id/1)
