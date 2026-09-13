@@ -1,8 +1,6 @@
 defmodule MonteCarlo.Simulation.Simple do
   defstruct [:stories_remaining, :velocity]
 
-  @days_worked_per_week 5
-
   def new(input_reader: input_reader, stories_remaining: stories_remaining) do
     velocity = input_reader.ask_for(:velocity)
 
@@ -21,7 +19,7 @@ defmodule MonteCarlo.Simulation.Simple do
 
     if stories_delivered >= scenario.stories_remaining do
       # we're done, yield the total number of days it took
-      days_thus_far + @days_worked_per_week
+      days_thus_far + MonteCarlo.days_worked_per_week()
     else
       # simulate another week until we are done
       scenario =
@@ -30,7 +28,7 @@ defmodule MonteCarlo.Simulation.Simple do
           stories_remaining: scenario.stories_remaining - stories_delivered
         )
 
-      forecast(days_thus_far + @days_worked_per_week, scenario)
+      forecast(days_thus_far + MonteCarlo.days_worked_per_week(), scenario)
     end
   end
 end

@@ -2,6 +2,7 @@ defmodule MonteCarlo do
   @moduledoc "Provides a means to run monte-carlo simulations of an engineering team delivering software"
 
   @num_simulations 100_000
+  @days_worked_per_week 5
 
   defmodule Results do
     @moduledoc """
@@ -83,7 +84,11 @@ defmodule MonteCarlo do
     }
   end
 
-  def percent(outcomes, num_simulations) do
+  def days_worked_per_week, do: @days_worked_per_week
+
+  # # #
+
+  defp percent(outcomes, num_simulations) do
     outcomes
     |> Enum.map(fn {_days_elapsed, occurrences} -> occurrences end)
     |> Enum.sum()
@@ -91,8 +96,6 @@ defmodule MonteCarlo do
     |> Kernel.*(100)
     |> Float.round(2)
   end
-
-  # # #
 
   defp current_week() do
     {_year, week_number} = :calendar.iso_week_number()
