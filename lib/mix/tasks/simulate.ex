@@ -16,7 +16,6 @@ defmodule Mix.Tasks.Simulate do
 
     stories_remaining = ask_for(:stories_to_deliver)
     desired_release_date = ask_for(:desired_release_date)
-    working_days = working_days_until(desired_release_date)
 
     scenario = strategy.new(input_reader: __MODULE__, stories_remaining: stories_remaining)
 
@@ -24,69 +23,21 @@ defmodule Mix.Tasks.Simulate do
     IO.puts("Goal : deliver #{stories_remaining} stories before #{desired_release_date}")
     IO.puts("")
 
-    simulations =
-      1..@num_simulations
-      |> Enum.reduce(%{}, fn _index, acc ->
-        days_to_complete = strategy.forecast(scenario)
+    results = MonteCarlo.run(strategy, scenario, desired_release_date)
 
-        Map.update(acc, days_to_complete, 1, fn existing_count -> existing_count + 1 end)
-      end)
-
-    results =
-      simulations
-      |> Enum.group_by(fn {days_elapsed, _occurrences} ->
-        if days_elapsed <= working_days do
-          :on_time
-        else
-          :late
-        end
-      end)
-
-    on_time = Map.get(results, :on_time, []) |> MonteCarlo.percent(@num_simulations)
-    late = Map.get(results, :late, []) |> MonteCarlo.percent(@num_simulations)
-
-    current_week = current_week()
-
-    week_distribution =
-      Enum.reduce(simulations, %{}, fn {days_elapsed, occurrences}, acc ->
-        week_number = current_week + max(div(days_elapsed - 1, 5) + 1, 1)
-
-        Map.update(acc, week_number, occurrences, fn existing_count ->
-          existing_count + occurrences
-        end)
-      end)
-
-    IO.puts("Results")
+    IO.puts("Results :")
     IO.puts("-------")
     IO.puts("")
-    IO.puts("We are on-time #{on_time} % of the time")
-    IO.puts("We are late    #{late} % of the time")
+    IO.puts("We are on-time #{results.on_time} % of the time")
+    IO.puts("We are late    #{results.late} % of the time")
     IO.puts("")
-    IO.puts("Current week is #{current_week}")
-    IO.puts("Most likely delivery is by end of week #{most_likely(week_distribution)}")
+    IO.puts("Current week is #{results.current_week}")
+    IO.puts("Most likely delivery is by end of week #{results.most_likely_week}")
     IO.puts("")
 
-    week_distribution
+    results.distribution_by_week
     |> BarChart.render(@num_simulations)
     |> Enum.each(fn line -> IO.puts(line) end)
-  end
-
-  # # # Private
-
-  defp current_week() do
-    {_year, week_number} = :calendar.iso_week_number()
-    week_number
-  end
-
-  defp working_days_until(date) do
-    Date.range(Date.utc_today(), date)
-    |> Enum.map(&Date.day_of_week/1)
-    |> Enum.filter(&(&1 <= 5))
-    |> length()
-  end
-
-  defp most_likely(weekly_distributions) do
-    weekly_distributions |> Enum.max_by(&elem(&1, 1)) |> elem(0)
   end
 
   # # # Command-line Flags
