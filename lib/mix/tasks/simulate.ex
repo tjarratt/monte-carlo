@@ -14,8 +14,8 @@ defmodule Mix.Tasks.Simulate do
   def run(args) do
     [strategy: strategy] = parse_args(args)
 
-    stories_remaining = prompt_stories_remaining()
-    desired_release_date = prompt_release_date()
+    stories_remaining = ask_for(:stories_to_deliver)
+    desired_release_date = ask_for(:desired_release_date)
     working_days = working_days_until(desired_release_date)
 
     scenario = strategy.new(input_reader: __MODULE__, stories_remaining: stories_remaining)
@@ -131,7 +131,7 @@ defmodule Mix.Tasks.Simulate do
     )
   end
 
-  defp prompt_stories_remaining do
+  def ask_for(:stories_to_deliver) do
     prompt_until_valid(
       "Stories to deliver",
       :stories_remaining,
@@ -139,7 +139,7 @@ defmodule Mix.Tasks.Simulate do
     )
   end
 
-  defp prompt_release_date do
+  def ask_for(:desired_release_date) do
     prompt_until_valid(
       "Desired release date (YYYY-MM-DD)",
       :release_date,
