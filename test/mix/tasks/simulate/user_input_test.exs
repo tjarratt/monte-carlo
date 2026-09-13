@@ -1,6 +1,6 @@
 defmodule Mix.Tasks.Simulate.UserInputTest do
+  # @related [subject](lib/mix/tasks/simulate/user_input.ex)
   use ExUnit.Case, async: true
-
   use Expect
 
   alias Mix.Tasks.Simulate.UserInput

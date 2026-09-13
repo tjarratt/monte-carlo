@@ -1,6 +1,5 @@
 defmodule Mix.Tasks.Simulate.ChartTest do
   use ExUnit.Case, async: true
-
   use Expect
 
   alias Mix.Tasks.Simulate.BarChart

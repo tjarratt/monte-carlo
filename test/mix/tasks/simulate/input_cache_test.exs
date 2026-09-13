@@ -1,6 +1,5 @@
 defmodule Mix.Tasks.Simulate.InputCacheTest do
   use ExUnit.Case, async: false
-
   use Expect
 
   alias Mix.Tasks.Simulate.InputCache
