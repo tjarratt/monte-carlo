@@ -4,7 +4,6 @@ defmodule Mix.Tasks.Simulate do
   @shortdoc "Runs a Monte Carlo simulation of an engineering team"
 
   @requirements ["app.start"]
-  @num_simulations 100_000
 
   alias Mix.Tasks.Simulate.BarChart
   alias Mix.Tasks.Simulate.InputCache
@@ -36,7 +35,7 @@ defmodule Mix.Tasks.Simulate do
     IO.puts("")
 
     results.distribution_by_week
-    |> BarChart.render(@num_simulations)
+    |> BarChart.render(results.num_simulations)
     |> Enum.each(fn line -> IO.puts(line) end)
   end
 
