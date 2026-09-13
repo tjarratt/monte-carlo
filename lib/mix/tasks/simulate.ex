@@ -75,9 +75,9 @@ defmodule Mix.Tasks.Simulate do
 
   def ask_for(:bugs) do
     prompt_until_valid(
-      "How many new bugs are created per week",
+      "Percentage of work delivered that has bugs",
       :bug_rate,
-      &UserInput.parse_range/1
+      &UserInput.parse_percent/1
     )
   end
 

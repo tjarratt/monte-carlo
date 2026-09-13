@@ -118,15 +118,37 @@ defmodule Mix.Tasks.Simulate.UserInputTest do
     end
   end
 
-  describe "parse_range/1" do
-    test "returns the range when it can be parsed" do
-      {:ok, range} = UserInput.parse_range("6-7")
+  describe "parse_percent/1" do
+    test "returns the percentage as a float when it can be parsed" do
+      {:ok, percent} = UserInput.parse_percent("42")
 
-      expect(range, to: equal(6..7))
+      expect(percent, to: equal(0.42))
     end
 
-    test "returns an error when it cannot be parsed as a range" do
-      result = UserInput.parse_range("whoopsie")
+    test "handles optional decimal points" do
+      {:ok, percent} = UserInput.parse_percent("42.123")
+
+      expect(percent, to: equal(0.42123))
+    end
+
+    test "accepts values outside the range [0-100)" do
+      result = UserInput.parse_percent("0")
+      expect(result, to_not: be_an_error())
+
+      result = UserInput.parse_percent("99.999")
+      expect(result, to_not: be_an_error())
+    end
+
+    test "returns an error for values outside the range [0-100)" do
+      result = UserInput.parse_percent("-1")
+      expect(result, to: be_an_error())
+
+      result = UserInput.parse_percent("100")
+      expect(result, to: be_an_error())
+    end
+
+    test "returns an error when it cannot be parsed as a percent" do
+      result = UserInput.parse_percent("whoopsie")
 
       expect(result, to: be_an_error())
     end

@@ -1,14 +1,14 @@
 defmodule MonteCarlo.Simulation.Buggy do
-  defstruct [:stories_remaining, :velocity, :bug_rates]
+  defstruct [:stories_remaining, :velocity, :bug_rate]
 
   def new(input_reader: input_reader, stories_remaining: stories_remaining) do
     velocity = input_reader.ask_for(:velocity)
-    bug_rates = input_reader.ask_for(:bugs)
+    bug_rate = input_reader.ask_for(:bugs)
 
     %__MODULE__{
       stories_remaining: stories_remaining,
       velocity: velocity,
-      bug_rates: bug_rates
+      bug_rate: bug_rate
     }
   end
 
@@ -21,7 +21,7 @@ defmodule MonteCarlo.Simulation.Buggy do
     stories_delivered = Enum.random(scenario.velocity)
 
     # take one down, pass it around
-    newly_created_bugs = Enum.random(scenario.bug_rates)
+    newly_created_bugs = stories_delivered * scenario.bug_rate
 
     # 101 user stories on the wall
     stories_remaining = scenario.stories_remaining + newly_created_bugs - stories_delivered

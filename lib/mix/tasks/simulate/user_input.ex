@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Simulate.UserInput do
-  @friday 5
+  # @related [tests](test/mix/tasks/simulate/user_input_test.exs)
 
   @doc false
   def parse_board_id(input) do
@@ -13,17 +13,18 @@ defmodule Mix.Tasks.Simulate.UserInput do
   end
 
   @doc false
-  def parse_range(input) do
-    input = String.trim(input)
+  def parse_percent(input) do
+    result = input |> String.trim() |> Float.parse()
 
-    cond do
-      Regex.match?(~r"\d+\-\d+", input) ->
-        [start, stop] = String.split(input, "-") |> Enum.map(&String.to_integer/1)
-        range = Range.new(start, stop)
-        {:ok, range}
-
-      true ->
+    case result do
+      :error ->
         {:error, "range must be in format '0-3' (eg: 1-3, 1-5, 1-1)"}
+
+      {float, ""} when float >= 0 and float < 100 ->
+        {:ok, float / 100.0}
+
+      {_out_of_range, _binary} ->
+        {:error, "percentage must be in format '1.23' (eg: 42, 0.0, 99.99)"}
     end
   end
 
@@ -36,6 +37,7 @@ defmodule Mix.Tasks.Simulate.UserInput do
   end
 
   @doc false
+  @friday 5
   def parse_release_date(input, today \\ Date.utc_today()) do
     with trimmed when trimmed != "" <- String.trim(input),
          {:ok, release_date} <- Date.from_iso8601(trimmed),
