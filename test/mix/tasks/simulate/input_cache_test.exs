@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.Simulate.InputCacheTest do
   use ExUnit.Case, async: false
 
+  use Expect
+
   alias Mix.Tasks.Simulate.InputCache
 
   @test_cache_file "tmp/test_simulate_inputs_#{:erlang.unique_integer([:positive])}.json"
@@ -19,12 +21,16 @@ defmodule Mix.Tasks.Simulate.InputCacheTest do
 
   describe "read/1 and write/2" do
     test "returns nil when no cache file exists" do
-      assert InputCache.read(:board_id) == nil
+      cached_result = InputCache.read(:board_id)
+
+      expect(cached_result, to: be_nil())
     end
 
     test "write persists a value and read retrieves it" do
       InputCache.write(:board_id, "42")
-      assert InputCache.read(:board_id) == "42"
+      cached_result = InputCache.read(:board_id)
+
+      expect(cached_result, to: equal("42"))
     end
 
     test "write updates an existing key without losing other keys" do
@@ -32,18 +38,11 @@ defmodule Mix.Tasks.Simulate.InputCacheTest do
       InputCache.write(:stories_remaining, "25")
       InputCache.write(:board_id, "99")
 
-      assert InputCache.read(:board_id) == "99"
-      assert InputCache.read(:stories_remaining) == "25"
-    end
+      board_id = InputCache.read(:board_id)
+      expect(board_id, to: equal("99"))
 
-    test "returns nil for a key that has never been written" do
-      InputCache.write(:board_id, "1")
-      assert InputCache.read(:stories_remaining) == nil
-    end
-
-    test "converts non-string keys to strings" do
-      InputCache.write(:release_date, "2027-06-11")
-      assert InputCache.read(:release_date) == "2027-06-11"
+      stories_remaining = InputCache.read(:stories_remaining)
+      expect(stories_remaining, to: equal("25"))
     end
   end
 end

@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.Simulate.ChartTest do
   use ExUnit.Case, async: true
 
+  use Expect
+
   alias Mix.Tasks.Simulate.BarChart
 
   describe "render_weekly_distribution_chart/3" do
@@ -12,10 +14,10 @@ defmodule Mix.Tasks.Simulate.ChartTest do
           10
         )
 
-      assert header == "Week | % of simulations"
-      assert line1 =~ ~r/^\s*1 \| .+ 50\.00%$/
-      assert line2 =~ ~r/^\s*2 \| .+ 25\.00%$/
-      assert line3 =~ ~r/^\s*3 \| .+ 25\.00%$/
+      expect(header, to: equal("Week | % of simulations"))
+      expect(line1, to: match_regex(~r/^\s*1 \| .+ 50\.00%$/))
+      expect(line2, to: match_regex(~r/^\s*2 \| .+ 25\.00%$/))
+      expect(line3, to: match_regex(~r/^\s*3 \| .+ 25\.00%$/))
     end
 
     test "renders an empty bar for zero-percent weeks" do
@@ -26,8 +28,8 @@ defmodule Mix.Tasks.Simulate.ChartTest do
           10
         )
 
-      assert line1 =~ ~r/^\s*1 \|\s+0\.00%$/
-      assert line2 =~ ~r/^\s*2 \| [^ ]+ 100\.00%$/
+      expect(line1, to: match_regex(~r/^\s*1 \|\s+0\.00%$/))
+      expect(line2, to: match_regex(~r/^\s*2 \| [^ ]+ 100\.00%$/))
     end
   end
 end

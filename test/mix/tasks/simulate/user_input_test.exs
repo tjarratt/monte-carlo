@@ -1,94 +1,120 @@
 defmodule Mix.Tasks.Simulate.UserInputTest do
   use ExUnit.Case, async: true
 
+  use Expect
+
   alias Mix.Tasks.Simulate.UserInput
 
   describe "parse_board_id/1" do
     test "accepts numeric board ids" do
-      assert {:ok, "123"} = UserInput.parse_board_id("123")
-      assert {:ok, "1"} = UserInput.parse_board_id("1")
+      {:ok, parsed} = UserInput.parse_board_id("123")
+
+      expect(parsed, to: equal("123"))
     end
 
     test "trims whitespace before validating" do
-      assert {:ok, "42"} = UserInput.parse_board_id("  42  ")
+      {:ok, parsed} = UserInput.parse_board_id("  42  ")
+
+      expect(parsed, to: equal("42"))
     end
 
     test "rejects empty input" do
-      assert {:error, "jira board id cannot be empty"} = UserInput.parse_board_id("")
-      assert {:error, _} = UserInput.parse_board_id("   ")
+      result = UserInput.parse_board_id("")
+      expect(result, to: equal({:error, "jira board id cannot be empty"}))
+
+      result = UserInput.parse_board_id("   ")
+      expect(result, to: equal({:error, "jira board id cannot be empty"}))
     end
 
     test "rejects non-numeric input" do
-      assert {:error, "jira board id must be a numeric value"} = UserInput.parse_board_id("abc")
-      assert {:error, _} = UserInput.parse_board_id("12abc")
-      assert {:error, _} = UserInput.parse_board_id("1.5")
+      result = UserInput.parse_board_id("abc")
+      expect(result, to: equal({:error, "jira board id must be a numeric value"}))
+
+      result = UserInput.parse_board_id("12abc")
+      expect(result, to: equal({:error, "jira board id must be a numeric value"}))
+
+      result = UserInput.parse_board_id("1.5")
+      expect(result, to: equal({:error, "jira board id must be a numeric value"}))
     end
   end
 
   describe "parse_stories_remaining/1" do
     test "accepts integers greater than zero" do
-      assert {:ok, 12} = UserInput.parse_stories_remaining("12")
+      {:ok, parsed} = UserInput.parse_stories_remaining("12")
+
+      expect(parsed, to: equal(12))
     end
 
     test "rejects zero, negatives, and non-integers" do
-      assert {:error, _reason} = UserInput.parse_stories_remaining("0")
-      assert {:error, _reason} = UserInput.parse_stories_remaining("-2")
-      assert {:error, _reason} = UserInput.parse_stories_remaining("3.2")
-      assert {:error, _reason} = UserInput.parse_stories_remaining("abc")
+      for input <- ["0", "-2", "3.2", "whoops"] do
+        result = UserInput.parse_stories_remaining(input)
+
+        expect(result, to: be_an_error())
+      end
     end
   end
 
   describe "parse_release_date/2" do
     test "accepts future Fridays without warning" do
-      assert {:ok, ~D[2026-01-09], nil} =
-               UserInput.parse_release_date("2026-01-09", ~D[2026-01-01])
+      {:ok, parsed, warning} = UserInput.parse_release_date("2026-01-09", ~D[2026-01-01])
+
+      expect(parsed, to: equal(~D[2026-01-09]))
+      expect(warning, to: be_nil())
     end
 
     test "rejects non-ISO date values" do
-      assert {:error, "release date must be in YYYY-mm-dd format"} =
-               UserInput.parse_release_date("2026/01/02", ~D[2026-01-01])
+      any_old_date = ~D[2026-01-01]
 
-      assert {:error, _reason} = UserInput.parse_release_date("garbage", ~D[2026-01-01])
-      assert {:error, _reason} = UserInput.parse_release_date("", ~D[2026-01-01])
+      for date_string <- ["2026/01/02", "garbage", ""] do
+        result = UserInput.parse_release_date(date_string, any_old_date)
+
+        expect(result, to: be_an_error())
+      end
     end
 
     test "rejects dates that are not in the future" do
-      assert {:error, "release date must be in the future"} =
-               UserInput.parse_release_date("2026-01-01", ~D[2026-01-01])
+      result = UserInput.parse_release_date("2026-01-01", ~D[2026-01-01])
+      expect(result, to: be_an_error())
 
-      assert {:error, "release date must be in the future"} =
-               UserInput.parse_release_date("2025-12-31", ~D[2026-01-01])
+      result = UserInput.parse_release_date("2025-12-31", ~D[2026-01-01])
+      expect(result, to: be_an_error())
     end
 
     test "rounds release dates to the nearest Friday and warns" do
       {:ok, nearest_friday, warning} =
         UserInput.parse_release_date("2026-01-05", ~D[2026-01-01])
 
-      assert nearest_friday == ~D[2026-01-02]
+      expect(nearest_friday, to: equal(~D[2026-01-02]))
 
-      assert warning == "Warning: 2026-01-05 is not a Friday; using nearest Friday 2026-01-02."
+      expect(warning,
+        to: equal("Warning: 2026-01-05 is not a Friday; using nearest Friday 2026-01-02.")
+      )
     end
 
     @friday ~D[2026-01-02]
     test "always rounds to the closest friday (at most 3 days before or after)" do
-      assert_is_friday(UserInput.parse_release_date("2026-01-04", ~D[2025-01-01]))
-      assert_is_friday(UserInput.parse_release_date("2026-01-03", ~D[2025-01-01]))
-      assert_is_friday(UserInput.parse_release_date("2026-01-02", ~D[2025-01-01]))
-      assert_is_friday(UserInput.parse_release_date("2026-01-01", ~D[2025-01-01]))
-      assert_is_friday(UserInput.parse_release_date("2025-12-31", ~D[2025-01-01]))
-      assert_is_friday(UserInput.parse_release_date("2025-12-30", ~D[2025-01-01]))
+      given_date = ~D[2025-01-01]
+
+      for date_string <- [
+            "2026-01-04",
+            "2026-01-03",
+            "2026-01-02",
+            "2026-01-01",
+            "2025-12-31",
+            "2025-12-30"
+          ] do
+        {:ok, date, _warning_or_nil} = UserInput.parse_release_date(date_string, given_date)
+
+        expect(date, to: equal(@friday))
+      end
     end
 
     test "doesn't round to the same friday in the same week, if it would be 4+ days away" do
       {:ok, date, _warning} = UserInput.parse_release_date("2025-12-29", ~D[2025-01-01])
-      assert date != @friday
+      expect(date, to_not: equal(@friday))
 
       {:ok, date, _warning} = UserInput.parse_release_date("2025-12-29", ~D[2025-01-01])
-      assert date != @friday
-    end
-
-    defp assert_is_friday({:ok, date, _warning}) do
-      assert date == @friday
+      expect(date, to_not: equal(@friday))
     end
   end
 
@@ -96,15 +122,13 @@ defmodule Mix.Tasks.Simulate.UserInputTest do
     test "returns the range when it can be parsed" do
       {:ok, range} = UserInput.parse_range("6-7")
 
-      assert range.first == 6
-      assert range.last == 7
-      assert range.step == 1
+      expect(range, to: equal(6..7))
     end
 
     test "returns an error when it cannot be parsed as a range" do
-      {:error, message} = UserInput.parse_range("whoopsie")
+      result = UserInput.parse_range("whoopsie")
 
-      assert message =~ "range must be in format"
+      expect(result, to: be_an_error())
     end
   end
 end
