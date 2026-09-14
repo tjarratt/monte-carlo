@@ -15,9 +15,9 @@ defmodule Mix.Tasks.Simulate.BarChartTest do
         )
 
       expect(header, to: equal("Week | % of simulations"))
-      expect(line1, to: match_regex(~r/^\s*1 \| .+ 50\.00%$/))
-      expect(line2, to: match_regex(~r/^\s*2 \| .+ 25\.00%$/))
-      expect(line3, to: match_regex(~r/^\s*3 \| .+ 25\.00%$/))
+      expect(line1, to: match_regex(~r/^\s*1 \| .+ 50\.000%$/))
+      expect(line2, to: match_regex(~r/^\s*2 \| .+ 25\.000%$/))
+      expect(line3, to: match_regex(~r/^\s*3 \| .+ 25\.000%$/))
     end
 
     test "renders correct week numbers when the year wraps around" do
@@ -29,9 +29,9 @@ defmodule Mix.Tasks.Simulate.BarChartTest do
         )
 
       expect(header, to: equal("Week | % of simulations"))
-      expect(line1, to: match_regex(~r/^\s*51 \| .+ 30\.00%$/))
-      expect(line2, to: match_regex(~r/^\s*52 \| .+ 50\.00%$/))
-      expect(line3, to: match_regex(~r/^\s*1 \| .+ 20\.00%$/))
+      expect(line1, to: match_regex(~r/^\s*51 \| .+ 30\.000%$/))
+      expect(line2, to: match_regex(~r/^\s*52 \| .+ 50\.000%$/))
+      expect(line3, to: match_regex(~r/^\s*1 \| .+ 20\.000%$/))
     end
 
     test "renders an empty bar for zero-percent weeks" do
@@ -42,8 +42,8 @@ defmodule Mix.Tasks.Simulate.BarChartTest do
           10
         )
 
-      expect(line1, to: match_regex(~r/^\s*1 \|\s+0\.00%$/))
-      expect(line2, to: match_regex(~r/^\s*2 \| [^ ]+ 100\.00%$/))
+      expect(line1, to: match_regex(~r/^\s*1 \|\s+0\.000%$/))
+      expect(line2, to: match_regex(~r/^\s*2 \| [^ ]+ 100\.000%$/))
     end
   end
 end

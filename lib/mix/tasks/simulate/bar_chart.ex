@@ -16,7 +16,7 @@ defmodule Mix.Tasks.Simulate.BarChart do
            week_number |> handle_end_of_year() |> Integer.to_string() |> String.pad_leading(4)
 
          padded_bar = String.pad_trailing(bar, bar_width)
-         formatted_percentage = :erlang.float_to_binary(percentage, decimals: 2)
+         formatted_percentage = :erlang.float_to_binary(percentage, decimals: 3)
 
          "#{week_label} | #{padded_bar} #{formatted_percentage}%"
        end))
