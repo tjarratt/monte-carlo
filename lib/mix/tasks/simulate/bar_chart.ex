@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Simulate.BarChart do
+  # @related [tests](test/mix/tasks/simulate/bar_chart_test.exs)
   def render(weekly_distribution, number_simulations, bar_width \\ 40) do
     ["Week | % of simulations"] ++
       (weekly_distribution

@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Simulate.ChartTest do
+defmodule Mix.Tasks.Simulate.BarChartTest do
   use ExUnit.Case, async: true
   use Expect
 
