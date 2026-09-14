@@ -11,12 +11,19 @@ defmodule Mix.Tasks.Simulate do
 
   @impl Mix.Task
   def run(args) do
-    [strategy: strategy] = parse_args(args)
+    flags = parse_flags(args)
+    strategy = Keyword.fetch!(flags, :strategy)
 
     stories_remaining = ask_for(:stories_to_deliver)
     desired_release_date = ask_for(:desired_release_date)
+    velocity = ask_for(:velocity)
 
-    scenario = strategy.new(input_reader: __MODULE__, stories_remaining: stories_remaining)
+    scenario =
+      strategy.new(
+        input_reader: __MODULE__,
+        stories_remaining: stories_remaining,
+        velocity: velocity
+      )
 
     IO.puts("")
     IO.puts("Goal : deliver #{stories_remaining} stories before #{desired_release_date}")
@@ -41,7 +48,7 @@ defmodule Mix.Tasks.Simulate do
 
   # # # Command-line Flags
 
-  defp parse_args(args) do
+  defp parse_flags(args) do
     flags =
       args
       |> Enum.chunk_every(2)

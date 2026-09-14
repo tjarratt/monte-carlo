@@ -1,9 +1,7 @@
 defmodule MonteCarlo.Simulation.Simple do
   defstruct [:stories_remaining, :velocity]
 
-  def new(input_reader: input_reader, stories_remaining: stories_remaining) do
-    velocity = input_reader.ask_for(:velocity)
-
+  def new(input_reader: _input_reader, stories_remaining: stories_remaining, velocity: velocity) do
     %__MODULE__{
       stories_remaining: stories_remaining,
       velocity: velocity

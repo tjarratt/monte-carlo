@@ -1,8 +1,7 @@
 defmodule MonteCarlo.Simulation.Buggy do
   defstruct [:stories_remaining, :velocity, :bug_rate]
 
-  def new(input_reader: input_reader, stories_remaining: stories_remaining) do
-    velocity = input_reader.ask_for(:velocity)
+  def new(input_reader: input_reader, stories_remaining: stories_remaining, velocity: velocity) do
     bug_rate = input_reader.ask_for(:bugs)
 
     %__MODULE__{
