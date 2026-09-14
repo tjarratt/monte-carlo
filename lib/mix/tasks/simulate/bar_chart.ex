@@ -11,11 +11,18 @@ defmodule Mix.Tasks.Simulate.BarChart do
 
          bar_length = scaled_bar_length |> max(base_bar_length) |> min(bar_width)
          bar = String.duplicate("█", bar_length)
-         week_label = String.pad_leading(Integer.to_string(week_number), 4)
+
+         week_label =
+           week_number |> handle_end_of_year() |> Integer.to_string() |> String.pad_leading(4)
+
          padded_bar = String.pad_trailing(bar, bar_width)
          formatted_percentage = :erlang.float_to_binary(percentage, decimals: 2)
 
          "#{week_label} | #{padded_bar} #{formatted_percentage}%"
        end))
   end
+
+  # this is slightly incorrect, because some years have 53 weeks, but we're close enough
+  defp handle_end_of_year(int) when int <= 52, do: int
+  defp handle_end_of_year(int) when int > 52, do: rem(int, 52)
 end
