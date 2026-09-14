@@ -12,8 +12,8 @@ defmodule Mix.Tasks.Simulate do
   @impl Mix.Task
   def run(args) do
     flags = parse_flags!(args)
-    strategy = Keyword.fetch!(flags, :strategy)
-    velocity_source = Keyword.fetch!(flags, :velocity_from)
+    {strategy, flags} = Keyword.pop!(flags, :strategy)
+    {velocity_source, flags} = Keyword.pop!(flags, :velocity_from)
 
     stories_remaining = ask_for(:stories_to_deliver)
     desired_release_date = ask_for(:desired_release_date)
@@ -30,7 +30,7 @@ defmodule Mix.Tasks.Simulate do
     IO.puts("Goal : deliver #{stories_remaining} stories before #{desired_release_date}")
     IO.puts("")
 
-    results = MonteCarlo.run(strategy, scenario, desired_release_date)
+    results = MonteCarlo.run(strategy, scenario, desired_release_date, flags)
 
     IO.puts("Results")
     IO.puts("-------")
@@ -56,21 +56,31 @@ defmodule Mix.Tasks.Simulate do
       |> Enum.reduce(%{}, fn [flag, value], acc -> Map.put(acc, flag, value) end)
 
     scenario_strategy = Map.get(flags, "--strategy") |> strategy_from!()
-    velocity_strategy = Map.get(flags, "--velocity-from") |> velocity_strategy_from!()
+    velocity_source = Map.get(flags, "--velocity-from") |> velocity_source_from!()
+    num_simulations = Map.get(flags, "--num-simulations") |> maybe_to_int()
 
-    [strategy: scenario_strategy, velocity_from: velocity_strategy]
+    []
+    |> Keyword.put(:strategy, scenario_strategy)
+    |> Keyword.put(:velocity_from, velocity_source)
+    |> maybe_put(:num_simulations, num_simulations)
   end
+
+  defp maybe_to_int(nil), do: nil
+  defp maybe_to_int(string) when is_binary(string), do: String.to_integer(string)
+
+  defp maybe_put(opts, _key, nil), do: opts
+  defp maybe_put(opts, key, value), do: Keyword.put(opts, key, value)
 
   defp strategy_from!(nil), do: MonteCarlo.Simulation.Simple
   defp strategy_from!("simple"), do: MonteCarlo.Simulation.Simple
   defp strategy_from!("buggy"), do: MonteCarlo.Simulation.Buggy
   defp strategy_from!(unknown), do: raise("Unknown strategy '#{unknown}'")
 
-  defp velocity_strategy_from!(nil), do: :jira
-  defp velocity_strategy_from!("jira"), do: :jira
-  defp velocity_strategy_from!("stdin"), do: :stdin
+  defp velocity_source_from!(nil), do: :jira
+  defp velocity_source_from!("jira"), do: :jira
+  defp velocity_source_from!("stdin"), do: :stdin
 
-  defp velocity_strategy_from!(unknown),
+  defp velocity_source_from!(unknown),
     do:
       raise("""
       Unknown value for flag --velocity-from : '#{unknown}'

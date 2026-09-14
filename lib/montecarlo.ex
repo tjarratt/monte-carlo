@@ -1,7 +1,7 @@
 defmodule MonteCarlo do
   @moduledoc "Provides a means to run monte-carlo simulations of an engineering team delivering software"
 
-  @num_simulations 100_000
+  @default_num_simulations 100_000
   @days_worked_per_week 5
 
   defmodule Results do
@@ -36,11 +36,12 @@ defmodule MonteCarlo do
     ]
   end
 
-  def run(strategy, scenario, desired_release_date) do
+  def run(strategy, scenario, desired_release_date, opts \\ []) do
+    num_simulations = Keyword.get(opts, :num_simulations, @default_num_simulations)
     working_days = working_days_until(desired_release_date)
 
     simulations =
-      1..@num_simulations
+      1..num_simulations
       |> Enum.reduce(%{}, fn _index, acc ->
         days_to_complete = strategy.forecast(scenario)
 
@@ -57,8 +58,8 @@ defmodule MonteCarlo do
         end
       end)
 
-    on_time = Map.get(outcomes, :on_time, []) |> percent(@num_simulations)
-    late = Map.get(outcomes, :late, []) |> percent(@num_simulations)
+    on_time = Map.get(outcomes, :on_time, []) |> percent(num_simulations)
+    late = Map.get(outcomes, :late, []) |> percent(num_simulations)
 
     current_week = current_week()
 
@@ -74,7 +75,7 @@ defmodule MonteCarlo do
     most_likely_week = most_likely(distribution_by_week)
 
     %Results{
-      num_simulations: @num_simulations,
+      num_simulations: num_simulations,
       raw_outcomes: outcomes,
       on_time: on_time,
       late: late,
