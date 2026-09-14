@@ -11,12 +11,13 @@ defmodule Mix.Tasks.Simulate do
 
   @impl Mix.Task
   def run(args) do
-    flags = parse_flags(args)
+    flags = parse_flags!(args)
     strategy = Keyword.fetch!(flags, :strategy)
+    velocity_strategy = Keyword.fetch!(flags, :velocity_from)
 
     stories_remaining = ask_for(:stories_to_deliver)
     desired_release_date = ask_for(:desired_release_date)
-    velocity = ask_for(:velocity)
+    velocity = ask_for(:velocity, strategy: velocity_strategy)
 
     scenario =
       strategy.new(
@@ -31,7 +32,7 @@ defmodule Mix.Tasks.Simulate do
 
     results = MonteCarlo.run(strategy, scenario, desired_release_date)
 
-    IO.puts("Results :")
+    IO.puts("Results")
     IO.puts("-------")
     IO.puts("")
     IO.puts("We are on-time #{results.on_time} % of the time")
@@ -48,15 +49,16 @@ defmodule Mix.Tasks.Simulate do
 
   # # # Command-line Flags
 
-  defp parse_flags(args) do
+  defp parse_flags!(args) do
     flags =
       args
       |> Enum.chunk_every(2)
       |> Enum.reduce(%{}, fn [flag, value], acc -> Map.put(acc, flag, value) end)
 
-    strategy = Map.get(flags, "--strategy") |> strategy_from!()
+    scenario_strategy = Map.get(flags, "--strategy") |> strategy_from!()
+    velocity_strategy = Map.get(flags, "--velocity-from") |> velocity_strategy_from!()
 
-    [strategy: strategy]
+    [strategy: scenario_strategy, velocity_from: velocity_strategy]
   end
 
   defp strategy_from!(nil), do: MonteCarlo.Simulation.Simple
@@ -64,9 +66,23 @@ defmodule Mix.Tasks.Simulate do
   defp strategy_from!("buggy"), do: MonteCarlo.Simulation.Buggy
   defp strategy_from!(unknown), do: raise("Unknown strategy '#{unknown}'")
 
-  # # # User Input
+  defp velocity_strategy_from!(nil), do: :from_jira
+  defp velocity_strategy_from!("jira"), do: :from_jira
 
-  def ask_for(:velocity) do
+  defp velocity_strategy_from!(unknown),
+    do:
+      raise("""
+      Unknown value for flag --velocity-from : '#{unknown}'
+
+      Supported values: [jira, stdin]
+
+      """)
+
+  # # # User Input
+  def ask_for(input, opts \\ [])
+
+  def ask_for(:velocity, strategy: :from_jira) do
+    IO.puts("Calculating historical velocity from jira ...")
     board_id = prompt_until_valid("Jira board id", :board_id, &UserInput.parse_board_id/1)
 
     case JiraVelocity.fetch_velocity(board_id) do
@@ -80,7 +96,7 @@ defmodule Mix.Tasks.Simulate do
     end
   end
 
-  def ask_for(:bugs) do
+  def ask_for(:bugs, _opts) do
     prompt_until_valid(
       "Percentage of work delivered that has bugs",
       :bug_rate,
@@ -88,7 +104,7 @@ defmodule Mix.Tasks.Simulate do
     )
   end
 
-  def ask_for(:stories_to_deliver) do
+  def ask_for(:stories_to_deliver, _opts) do
     prompt_until_valid(
       "Stories to deliver",
       :stories_remaining,
@@ -96,7 +112,7 @@ defmodule Mix.Tasks.Simulate do
     )
   end
 
-  def ask_for(:desired_release_date) do
+  def ask_for(:desired_release_date, _opts) do
     prompt_until_valid(
       "Desired release date (YYYY-MM-DD)",
       :release_date,
