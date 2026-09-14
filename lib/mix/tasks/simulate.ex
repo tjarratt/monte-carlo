@@ -13,11 +13,11 @@ defmodule Mix.Tasks.Simulate do
   def run(args) do
     flags = parse_flags!(args)
     strategy = Keyword.fetch!(flags, :strategy)
-    velocity_strategy = Keyword.fetch!(flags, :velocity_from)
+    velocity_source = Keyword.fetch!(flags, :velocity_from)
 
     stories_remaining = ask_for(:stories_to_deliver)
     desired_release_date = ask_for(:desired_release_date)
-    velocity = ask_for(:velocity, strategy: velocity_strategy)
+    velocity = ask_for(:velocity, via: velocity_source)
 
     scenario =
       strategy.new(
@@ -66,8 +66,9 @@ defmodule Mix.Tasks.Simulate do
   defp strategy_from!("buggy"), do: MonteCarlo.Simulation.Buggy
   defp strategy_from!(unknown), do: raise("Unknown strategy '#{unknown}'")
 
-  defp velocity_strategy_from!(nil), do: :from_jira
-  defp velocity_strategy_from!("jira"), do: :from_jira
+  defp velocity_strategy_from!(nil), do: :jira
+  defp velocity_strategy_from!("jira"), do: :jira
+  defp velocity_strategy_from!("stdin"), do: :stdin
 
   defp velocity_strategy_from!(unknown),
     do:
@@ -81,7 +82,7 @@ defmodule Mix.Tasks.Simulate do
   # # # User Input
   def ask_for(input, opts \\ [])
 
-  def ask_for(:velocity, strategy: :from_jira) do
+  def ask_for(:velocity, via: :jira) do
     IO.puts("Calculating historical velocity from jira ...")
 
     case JiraVelocity.fetch_velocity() do
@@ -93,6 +94,14 @@ defmodule Mix.Tasks.Simulate do
         IO.puts("Could not fetch Jira weekly velocity: #{reason}")
         System.halt(1)
     end
+  end
+
+  def ask_for(:velocity, via: :stdin) do
+    prompt_until_valid(
+      "Historical velocity measurements",
+      :velocity,
+      &UserInput.parse_list_of_ints/1
+    )
   end
 
   def ask_for(:bugs, _opts) do

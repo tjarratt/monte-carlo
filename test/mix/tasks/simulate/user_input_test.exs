@@ -153,4 +153,36 @@ defmodule Mix.Tasks.Simulate.UserInputTest do
       expect(result, to: be_an_error())
     end
   end
+
+  describe "parse_list_of_ints/1" do
+    test "returns the list when it can be parsed as a comma-separated list" do
+      {:ok, velocity} = UserInput.parse_list_of_ints("1,2,3")
+
+      expect(velocity, to: equal([1, 2, 3]))
+    end
+
+    test "returns the list when it can be parsed as a whitepace-separated list" do
+      {:ok, velocity} = UserInput.parse_list_of_ints("4 5 6")
+
+      expect(velocity, to: equal([4, 5, 6]))
+    end
+
+    test "an list that contains negative integers is an error" do
+      result = UserInput.parse_list_of_ints("-1")
+
+      expect(result, to: be_an_error())
+    end
+
+    test "an list that contains non-integers is an error" do
+      result = UserInput.parse_list_of_ints("whoopsie")
+
+      expect(result, to: be_an_error())
+    end
+
+    test "an empty list is an error" do
+      result = UserInput.parse_list_of_ints("")
+
+      expect(result, to: be_an_error())
+    end
+  end
 end

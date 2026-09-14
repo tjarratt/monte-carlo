@@ -4,6 +4,7 @@ defmodule Mix.Tasks.Simulate.UserInput do
   @doc false
   def parse_board_id(input) do
     board_id = String.trim(input)
+
     cond do
       board_id == "" -> {:error, "jira board id cannot be empty"}
       Regex.match?(~r/^\d+$/, board_id) -> {:ok, board_id}
@@ -32,6 +33,28 @@ defmodule Mix.Tasks.Simulate.UserInput do
     case Integer.parse(String.trim(input)) do
       {stories, ""} when stories > 0 -> {:ok, stories}
       _ -> {:error, "stories to deliver must be an integer greater than 0"}
+    end
+  end
+
+  @doc false
+  def parse_list_of_ints(input) do
+    ints =
+      input
+      |> String.split([",", " "])
+      |> Enum.reject(&(&1 == ""))
+
+    cond do
+      Enum.empty?(ints) ->
+        {:error, "historical velocity must be a non-empty list (eg: 1,2,3)"}
+
+      Enum.all?(ints, &String.match?(&1, ~r"^\d+$")) ->
+        {:ok, Enum.map(ints, &String.to_integer/1)}
+
+      Enum.any?(ints, &(&1 < 0)) ->
+        {:error, "historical velocity must be a list of positive integers (eg: 1,2,3)"}
+
+      true ->
+        {:error, "historical velocity must be a list of positive integers (eg: 1,2,3)"}
     end
   end
 
