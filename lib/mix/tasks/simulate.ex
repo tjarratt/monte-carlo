@@ -83,9 +83,8 @@ defmodule Mix.Tasks.Simulate do
 
   def ask_for(:velocity, strategy: :from_jira) do
     IO.puts("Calculating historical velocity from jira ...")
-    board_id = prompt_until_valid("Jira board id", :board_id, &UserInput.parse_board_id/1)
 
-    case JiraVelocity.fetch_velocity(board_id) do
+    case JiraVelocity.fetch_velocity() do
       {:ok, weekly_counts} ->
         IO.puts("Using calculated velocity from jira: #{inspect(weekly_counts)}")
         weekly_counts

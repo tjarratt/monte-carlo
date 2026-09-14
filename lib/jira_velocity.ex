@@ -1,9 +1,9 @@
 defmodule JiraVelocity do
   @weeks_to_fetch 10
 
-  def fetch_velocity(board_id) do
-    with {:ok, normalized_board_id} <- validate_board_id(board_id),
-         {:ok, config} <- jira_config(),
+  def fetch_velocity() do
+    with {:ok, config} <- jira_config(),
+         {:ok, normalized_board_id} <- validate_board_id(config),
          {:ok, filter_id} <- board_filter_id(config, normalized_board_id) do
       Date.utc_today()
       |> week_ranges(@weeks_to_fetch)
@@ -25,27 +25,20 @@ defmodule JiraVelocity do
 
   defp strip_weeks_without_velocity(results), do: results
 
-  defp validate_board_id(input) do
-    board_id =
-      input
-      |> to_string()
-      |> String.trim()
-
-    cond do
-      board_id == "" -> {:error, "jira board id cannot be empty"}
-      Regex.match?(~r/^\d+$/, board_id) -> {:ok, board_id}
-      true -> {:error, "jira board id must be a numeric value"}
-    end
+  defp validate_board_id(config) do
+    config
+    |> Map.fetch!(:board_id)
+    |> Mix.Tasks.Simulate.UserInput.parse_board_id()
   end
 
-  defp jira_config do
-    # TODO: add the board_id here too
+  defp jira_config() do
     base_url = System.get_env("JIRA_BASE_URL", "") |> String.trim_trailing("/")
     email = System.get_env("JIRA_EMAIL", "")
     api_token = System.get_env("JIRA_API_TOKEN", "")
+    board_id = System.get_env("JIRA_BOARD_ID", "")
 
-    if Enum.all?([base_url, email, api_token], &(String.trim(&1) != "")) do
-      {:ok, %{base_url: base_url, email: email, api_token: api_token}}
+    if Enum.all?([base_url, email, api_token, board_id], &(String.trim(&1) != "")) do
+      {:ok, %{base_url: base_url, email: email, api_token: api_token, board_id: board_id}}
     else
       {:error, "set JIRA_BASE_URL, JIRA_EMAIL, and JIRA_API_TOKEN environment variables"}
     end

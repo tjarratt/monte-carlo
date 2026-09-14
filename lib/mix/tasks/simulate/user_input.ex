@@ -4,7 +4,6 @@ defmodule Mix.Tasks.Simulate.UserInput do
   @doc false
   def parse_board_id(input) do
     board_id = String.trim(input)
-
     cond do
       board_id == "" -> {:error, "jira board id cannot be empty"}
       Regex.match?(~r/^\d+$/, board_id) -> {:ok, board_id}
