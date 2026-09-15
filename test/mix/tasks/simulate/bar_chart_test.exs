@@ -20,6 +20,20 @@ defmodule Mix.Tasks.Simulate.BarChartTest do
       expect(line3, to: match_regex(~r/^\s*3 \| .+ 25\.000%$/))
     end
 
+    test "renders percentages aligned to the decimal point" do
+      [header, line1, line2, line3] =
+        BarChart.render(
+          %{3 => 5_000, 1 => 80_000, 2 => 15_000},
+          100_000,
+          10
+        )
+
+      expect(header, to: equal("Week | % of simulations"))
+      expect(line1, to: equal("   1 | ██████████ 80.000%"))
+      expect(line2, to: equal("   2 | ████ 15.000%"))
+      expect(line3, to: equal("   3 | █     5.000%"))
+    end
+
     test "renders correct week numbers when the year wraps around" do
       [header, line1, line2, line3] =
         BarChart.render(
