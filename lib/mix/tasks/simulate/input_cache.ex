@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Simulate.InputCache do
+# @related [tests](test/mix/tasks/simulate/input_cache_test.exs)
   @default_cache_file "tmp/simulate_inputs.json"
 
   def read(key) do

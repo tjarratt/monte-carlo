@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Simulate.InputCacheTest do
+  # @related [subject](lib/mix/tasks/simulate/input_cache.ex)
   use ExUnit.Case, async: false
   use Expect
 
