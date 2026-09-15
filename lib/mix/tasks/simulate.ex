@@ -59,9 +59,18 @@ defmodule Mix.Tasks.Simulate do
     velocity_source = Map.get(flags, "--velocity-from") |> velocity_source_from!()
     num_simulations = Map.get(flags, "--num-simulations") |> maybe_to_int()
 
+    use_tasks =
+      System.get_env("CONCURRENCY")
+      |> (fn
+            "GOOD" -> true
+            "good" -> true
+            _otherwise -> false
+          end).()
+
     []
     |> Keyword.put(:strategy, scenario_strategy)
     |> Keyword.put(:velocity_from, velocity_source)
+    |> Keyword.put(:use_tasks, use_tasks)
     |> maybe_put(:num_simulations, num_simulations)
   end
 

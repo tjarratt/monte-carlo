@@ -39,14 +39,9 @@ defmodule MonteCarlo do
   def run(strategy, scenario, desired_release_date, opts \\ []) do
     num_simulations = Keyword.get(opts, :num_simulations, @default_num_simulations)
     working_days = working_days_until(desired_release_date)
+    use_tasks = Keyword.get(opts, :use_tasks, false)
 
-    simulations =
-      1..num_simulations
-      |> Enum.reduce(%{}, fn _index, acc ->
-        days_to_complete = strategy.forecast(scenario)
-
-        Map.update(acc, days_to_complete, 1, fn existing_count -> existing_count + 1 end)
-      end)
+    simulations = run_simulations(strategy, scenario, num_simulations, use_tasks)
 
     outcomes =
       simulations
@@ -88,6 +83,27 @@ defmodule MonteCarlo do
   def days_worked_per_week, do: @days_worked_per_week
 
   # # #
+
+  defp run_simulations(strategy, scenario, num_simulations, false = _use_tasks) do
+    1..num_simulations
+    |> Enum.reduce(%{}, fn _index, acc ->
+      days_to_complete = strategy.forecast(scenario)
+      Map.update(acc, days_to_complete, 1, fn existing_count -> existing_count + 1 end)
+    end)
+  end
+
+  defp run_simulations(strategy, scenario, num_simulations, true = _use_tasks) do
+    1..num_simulations
+    |> Enum.chunk_every(1_000)
+    |> Enum.map(fn slice ->
+      Task.async(fn -> for _run <- slice, do: strategy.forecast(scenario) end)
+    end)
+    |> Task.await_many(:infinity)
+    |> List.flatten()
+    |> Enum.reduce(%{}, fn days_to_complete, acc ->
+      Map.update(acc, days_to_complete, 1, fn existing_count -> existing_count + 1 end)
+    end)
+  end
 
   defp percent(outcomes, num_simulations) do
     outcomes
