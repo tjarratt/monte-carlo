@@ -83,6 +83,7 @@ defmodule Mix.Tasks.Simulate do
   defp strategy_from!(nil), do: MonteCarlo.Simulation.Simple
   defp strategy_from!("simple"), do: MonteCarlo.Simulation.Simple
   defp strategy_from!("buggy"), do: MonteCarlo.Simulation.Buggy
+  defp strategy_from!("batched"), do: MonteCarlo.Simulation.BatchRelease
   defp strategy_from!(unknown), do: raise("Unknown strategy '#{unknown}'")
 
   defp velocity_source_from!(nil), do: :jira
@@ -99,6 +100,7 @@ defmodule Mix.Tasks.Simulate do
       """)
 
   # # # User Input
+
   def ask_for(input, opts \\ [])
 
   def ask_for(:velocity, via: :jira) do
@@ -113,6 +115,27 @@ defmodule Mix.Tasks.Simulate do
         IO.puts("Could not fetch Jira weekly velocity: #{reason}")
         System.halt(1)
     end
+  end
+
+  def ask_for(:release_frequency, _opts) do
+    prompt_until_valid(
+      "Release strategy (eg: daily, weekly, monthly)",
+      :release_frequency,
+      fn
+        "daily" -> {:ok, :daily}
+        "weekly" -> {:ok, :weekly}
+        "monthly" -> {:ok, :monthly}
+        _otherwise -> {:error, "Specify one of 'daily', 'weekly', or 'monthly'"}
+      end
+    )
+  end
+
+  def ask_for(:rollback_rate, _opts) do
+    prompt_until_valid(
+      "Percentage of failed releases",
+      :release_frequency,
+      &UserInput.parse_percent/1
+    )
   end
 
   def ask_for(:velocity, via: :stdin) do
