@@ -5,6 +5,8 @@ Sometimes you want to know when your team is likely to deliver some software.
 This repo provides a mix task `mix simulate` that allows running different scenarios to help you
 understand when your project will finally complete.
 
+![screenshot-of-mix-task](screenshot.png)
+
 ## Usage
 
 - you can run `mix simulate` from the root of the repo
