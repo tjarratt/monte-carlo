@@ -18,7 +18,11 @@ defmodule Mix.Tasks.Simulate.BarChart do
          formatted_percentage = :erlang.float_to_binary(percentage, decimals: 3)
          padded_bar = String.pad_trailing(bar, bar_width - String.length(formatted_percentage))
 
-         "#{week_label} | #{padded_bar} #{formatted_percentage}%"
+         {week_label, padded_bar, formatted_percentage}
+       end)
+       |> Enum.reject(fn {_label, _padding, percentage} -> percentage == "0.000" end)
+       |> Enum.map(fn {label, padding, percentage} ->
+         "#{label} | #{padding} #{percentage}%"
        end))
   end
 
